@@ -14,6 +14,7 @@
     "build": "tsc -p .",
     "dev": "concurrently \"npm run build -- --watch\" \"npm run start\"",
     "jest-test": "jest",
+    "jest-test-dev": "npm run build && npm run jest-test -- --watch",
     "lint": "gts lint",
     "clean": "gts clean",
     "compile": "tsc",

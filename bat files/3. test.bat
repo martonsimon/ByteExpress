@@ -1,3 +1,5 @@
 cd ..
 call npm run build
-cmd /k npm run "jest-test"
+call npm run "jest-test"
+pause
+REM cmd /k npm run "jest-test"
