@@ -71,4 +71,17 @@ export class ByteUtils{
         
         return foundAt;
     }
+
+    static setBit(byte: number, position: number, value: boolean): number{
+        const mask = 1 << position;
+        if (value)
+            return byte | mask;
+        else
+            return byte & ~mask;
+    }
+
+    static getBit(byte: number, position: number): boolean{
+        const mask = 1 << position;
+        return !!(byte & mask);
+    }
 }

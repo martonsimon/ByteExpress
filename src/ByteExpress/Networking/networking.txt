@@ -1,0 +1,95 @@
+
+//send a single packet without asking for response
+//send
+let myPacket = new MyPacket();
+network.send(myPacket, false);
+
+//receive
+network.on(MyPacket, (req, res) => {
+
+});
+
+
+
+//send a single packet with response
+//send
+let myPacket = new MyPacket();
+network.send(myPacket).subscribe( (req, res) =>
+    req.payload;
+).catch(() => {});
+
+//receive
+network.on(MyPacket, (req, res) => {
+    let data = req.data;
+    res.send(200);
+    //res.send(new MyPacket());
+});
+
+
+
+//send a continious stream request with path (event request)
+//send
+let payload = new MyPacket();
+network.eventRequest<Packet>("api/path", payload).subscribe(data => {
+
+}, completed => {
+
+}).catch().finally();
+
+//receive
+network.onEvent("api/path", (req, res) => {
+    let payload = req.body;
+    let event = new MyPacket();
+    res.push(event);
+    res.push(event);
+    res.end();
+});
+
+
+
+
+// send a communication channel request (tunnel)
+//send
+network.tunnel("path").subscribe((tunnel) => 
+    //first message
+    let response = await tunnel.push(packet);
+
+    //second message
+    let response = await tunnel.push(packet);
+
+    //wait for incoming
+    let packet = await tunnel.nextInbound();
+).catch().finally();
+
+//receive
+network.onTunnel("path", (tunnel) => {
+    let packet1 = await tunnel.nextInbound();
+    packet1.res.end();
+
+    let packet2 = await tunnel.nextInbound();
+    packet1.res.end();
+
+    await tunnel.push(packet);
+});
+
+Packets:
+NetworkWrapper:
+    flags:
+        requireAck
+    packet_id
+    payload_length
+    payload
+
+Packet:
+    flags:
+        endpoint_defined
+        require_response
+        chunked_packet
+        initial_chunk
+        last_chunk
+    endpoint_path_length
+    endpoint_path
+    chunk_id
+    packet_id
+    payload_length
+    payload

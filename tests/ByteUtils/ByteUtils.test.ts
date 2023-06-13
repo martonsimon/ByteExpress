@@ -145,4 +145,22 @@ describe('Testing ByteUtils class', () => {
         expect(result5).toBe(-1);
         expect(result6).toBe(-1);
     });
+
+    test('setBit and getBit', () => {
+        let num1 = ByteUtils.setBit(0, 0, true);
+        let num2 = ByteUtils.setBit(0, 7, true);
+        let num3 = ByteUtils.setBit(255, 0, false);
+
+        expect(num1).toBe(1);
+        expect(num2).toBe(128);
+        expect(num3).toBe(254);
+
+        let val1 = ByteUtils.getBit(num1, 0);
+        let val2 = ByteUtils.getBit(num2, 7);
+        let val3 = ByteUtils.getBit(num3, 0);
+
+        expect(val1).toBe(true);
+        expect(val2).toBe(true);
+        expect(val3).toBe(false);
+    });
 });
