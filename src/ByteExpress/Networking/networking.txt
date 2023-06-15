@@ -73,23 +73,104 @@ network.onTunnel("path", (tunnel) => {
 });
 
 Packets:
-NetworkWrapper:
+TransferWrapper:
     flags:
-        requireAck
-    packet_id
-    payload_length
+        ack
+        require_ack
+        chunked_packet
+    packet_serial (if chunked)
+    chunk_id (if chunked)
+    packet_id (if !chunked | (chunked && chunk_id is 0))
+    payload_length (if !chunked | (chunked && chunk_id is 0))
     payload
 
-Packet:
+RequestPacket
     flags:
-        endpoint_defined
         require_response
-        chunked_packet
-        initial_chunk
-        last_chunk
-    endpoint_path_length
-    endpoint_path
-    chunk_id
-    packet_id
-    payload_length
+        accept_multiple_response //event_stream_requset //expects multiple packets as a response
+    endpoint
+    request_id (if require response)
+    payload (packet_id, packet_length, raw)
+ResponsePacket
+    flags:
+        close_connection //when sending the last response from event stream
+        error_respone
+    request_id
     payload
+TunnelRequest
+    endpoint
+    tunnel_id
+TunnelData
+    flags:
+        tunnel_requested_by_sender //since both parties can request a tunnel, the id need to be distinguished
+        close_connection
+        error_respone
+    tunnel_id
+    payload (contains data, or error response)
+
+
+3 types of messages:
+    request (optional response)
+    stream (bidirectional)
+    event stream (omnidirectional)
+
+NetworkHandler:
+    () -> outboundsource
+    inboundDataSource: Observer(id: any) = null
+    outboundDataSource: Observable(id: any) = null
+    list of connections
+
+    maxPacketSize //for outbound
+
+    connectionSendRate //delay between packages (important when sending data to mcus)
+    connectionPacketsPerAck //how many packets can be sent without waiting for an ack response
+    queueSize //
+
+    inboundData(observer)
+    outboundData(): returns observer
+    onConnected(id) -> add connection
+    onDisconnected(id) -> close pending request and remove connection
+
+    send(packet, id):
+        serialize packet
+        if longer then calculatePayloadSize()
+            chop it up into smaller pieces
+            set sequence id
+        else just wrap it
+        add it to network connection queue -> send()
+    
+    calculatePayloadSize()
+    request(packet, expectResponse = true): Promise
+    stream(endpoint): observable
+    eventStream<Packet or default>(endpoint): observable<T>
+
+NetworkConnection
+    id: any
+    sendRate
+    packetsPerAck
+    queueSize
+    outboundDataSource
+
+    lastSentAt: 0
+    packetsDeltaAck: 0
+    queue of packet base of size queueSize
+
+    queuePacket(packet) -> adds it to queue
+        if no send rate and doesnt waiting for ack
+        dispatch as many as possible
+
+        if send rate and doesnt waiting for ack
+        dispatch next if possible and set timeout
+
+    dispatch()
+        modify packetsdeltaack
+        serialize into bytes
+        send outbound
+
+    onInboundPacket()
+
+
+    awaitingAck(): packetsperck == packetsdeltaack
+        
+RequestHandler
+
