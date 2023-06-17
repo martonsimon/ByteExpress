@@ -117,7 +117,7 @@ TunnelData
 NetworkHandler:
     () -> outboundsource
     inboundDataSource: Observer(id: any) = null
-    outboundDataSource: Observable(id: any) = null
+    outboundDataSource: Observable(id: any) = null -> but rather callback
     list of connections
 
     maxPacketSize //for outbound
@@ -141,6 +141,7 @@ NetworkHandler:
     
     calculatePayloadSize()
     request(packet, expectResponse = true): Promise
+    onRequest(Type of packet, callback);
     stream(endpoint): observable
     eventStream<Packet or default>(endpoint): observable<T>
 
@@ -150,10 +151,13 @@ NetworkConnection
     packetsPerAck
     queueSize
     outboundDataSource
+    requestHandlers
 
     lastSentAt: 0
     packetsDeltaAck: 0
     queue of packet base of size queueSize
+
+    inboundBuffer: store an id, packet information, and raw payload
 
     queuePacket(packet) -> adds it to queue
         if no send rate and doesnt waiting for ack
@@ -168,9 +172,20 @@ NetworkConnection
         send outbound
 
     onInboundPacket()
+        if a single packet, then handle it
+        if a chunk of a packet, start buffering it
 
 
     awaitingAck(): packetsperck == packetsdeltaack
         
 RequestHandler
+
+
+    () -> outbound cb
+    request(packet, expectResponse): Promise
+        prepare packet
+        send
+        if no expected response then resolve Promise
+        otherwise add it to the queue
+    onRequest():
 

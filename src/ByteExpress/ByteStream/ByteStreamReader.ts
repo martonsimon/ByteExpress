@@ -12,6 +12,7 @@ export class ByteStreamReader extends ByteStreamBase{
     public readAll(copyArray: boolean = true): Uint8Array | undefined { return super.readAll(); }
     public readRemaining(copyArray: boolean = true): Uint8Array | undefined { return super.readRemaining(); }
     public getRemainingAmount(): number { return super.getRemainingAmount(); }
+    public getLength(): number { return super.getBytesWritten(); }
 
     public toStream(): ByteStream {
         let stream = new ByteStream();

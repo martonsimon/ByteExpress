@@ -6,7 +6,7 @@ describe('Testing Serialization class', () => {
     class SerializationTestPacket1 extends Serializable{
         number: number = 0;
         constructor(data?: ByteStreamReader | string | undefined){ super(data); }
-        toJson(): string{ throw new Error(""); }
+        toJson(): object{ throw new Error(""); }
         fromJson(data: string): boolean{ throw new Error(""); }
         toBytes(): ByteStreamReader{
             this.initSerializer();
@@ -25,7 +25,7 @@ describe('Testing Serialization class', () => {
         text1: string = "";
         packet1: SerializationTestPacket1 | undefined;
         constructor(data?: ByteStreamReader | string | undefined){ super(data); }
-        toJson(): string{ throw new Error(""); }
+        toJson(): object{ throw new Error(""); }
         fromJson(data: string): boolean{ throw new Error(""); }
         toBytes(): ByteStreamReader{
             this.initSerializer();

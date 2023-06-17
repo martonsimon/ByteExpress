@@ -15,7 +15,7 @@ export abstract class Serializable{
         else if (typeof data === "string")
             this.fromJson(data);
     }
-    public abstract toJson(): string;
+    public abstract toJson(): object;
     public abstract fromJson(data: string): boolean;
     public abstract toBytes(): ByteStreamReader;
     public abstract fromBytes(stream: ByteStreamReader): boolean;
@@ -54,6 +54,10 @@ export abstract class Serializable{
         let data = packet.toBytes().readAll();
         this.stream?.write(data!);
     }
+    public addBytes(bytes: Uint8Array){
+        this.checkInit();
+        this.stream?.write(bytes);
+    }
 
     public getNumber(length: number, isBigEndian: boolean = true): number{
         if (!this.streamReader)
@@ -75,5 +79,10 @@ export abstract class Serializable{
         let packet = new packetType();
         packet.fromBytes(this.streamReader);
         return packet;
+    }
+    public getBytes(amount: number){
+        if (!this.streamReader)
+            throw new Error("stream is empty");
+        return this.streamReader.read(amount);
     }
 }

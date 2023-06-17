@@ -11,14 +11,14 @@ export class TestPacket1 extends Serializable{
     constructor(data?: ByteStreamReader | string | undefined){
         super(data);
     }
-    toJson(): string{
+    toJson(): object{
         const obj = {
             number1: this.number1,
             number2: this.number2,
             text1: this.text1,
             text2: this.text2
         };
-        return JSON.stringify(obj);
+        return obj;
     }
     fromJson(data: string): boolean{
         const obj = JSON.parse(data);
