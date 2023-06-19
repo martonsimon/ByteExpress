@@ -1,4 +1,5 @@
 import { Serializable } from "../Serialization/Serializable";
+import { TransferWrapper } from "./NetworkingPackets/TransferWrapper";
 import { TestPacket1 } from "./TestPackets/TestPacket1";
 
 type ClassIdPair = {
@@ -16,7 +17,8 @@ export class PacketManager{
 
     constructor() {
         //Set up packets required for networking (in the range of 60001 -> 65536 both inclusive)
-        this._addPacket(TestPacket1,        6001);
+        this._addPacket(TestPacket1,            60_001);
+        this._addPacket(TransferWrapper,        60_002);
     }
 
     /**

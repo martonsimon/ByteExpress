@@ -1,3 +1,6 @@
+import { TransferWrapper } from "../Packets/NetworkingPackets/TransferWrapper";
+import { PacketManager } from "../Packets/PacketManager";
+import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
 
 //Callback type for outbound data
@@ -30,6 +33,7 @@ export class NetworkHandler{
 
     //
     private readonly connections: Array<NetworkConnection> = new Array<NetworkConnection>();
+    private readonly packetManager: PacketManager;
     private readonly encoder = new TextEncoder();
     private readonly decoder = new TextDecoder();
 
@@ -44,6 +48,8 @@ export class NetworkHandler{
         this.connectionPacketsPerAck = networkSettings?.connectionPacketsPerAck ?? 4;
         this.requestQueueSize = networkSettings?.requestQueueSize ?? 128;
         this.streamQueueSize = networkSettings?.streamQueueSize ?? 128;
+
+        this.packetManager = new PacketManager();
     }
 
     /**
@@ -73,7 +79,7 @@ export class NetworkHandler{
         let connection = new NetworkConnection(
             id, this.maxPacketSize, this.connectionSendRate, this.connectionPacketsPerAck,
             this.requestQueueSize, this.streamQueueSize,
-            this.outboundCallback,
+            this.outboundCallback, this.packetManager
         );
         this.connections.push(connection);
     }
@@ -83,5 +89,10 @@ export class NetworkHandler{
      */
     public disconnectClient(id: number){
 
+    }
+
+    public debugSendRaw(id: number, packet: Serializable){
+        let connection = this.connections.find(e => e.id == id);
+        connection!.sendPacket(packet);
     }
 }
