@@ -144,6 +144,8 @@ export class TransferWrapperFlags extends Flags{
     //If the packet is chunked, it gets an ID and the payload
     //is delivered in chunks
     chunked_packet: boolean = false;
+    //Indicates the last segment for a packet
+    last_chunk: boolean = false;
 
     constructor(initial?: number){ super(initial); }
 
@@ -151,6 +153,7 @@ export class TransferWrapperFlags extends Flags{
         this.flagsByte = ByteUtils.setBit(this.flagsByte, 0, this.ack);
         this.flagsByte = ByteUtils.setBit(this.flagsByte, 1, this.require_ack);
         this.flagsByte = ByteUtils.setBit(this.flagsByte, 2, this.chunked_packet);
+        this.flagsByte = ByteUtils.setBit(this.flagsByte, 3, this.last_chunk);
 
         return this.flagsByte;
     }
@@ -159,5 +162,6 @@ export class TransferWrapperFlags extends Flags{
         this.ack = ByteUtils.getBit(byte, 0);
         this.require_ack = ByteUtils.getBit(byte, 1);
         this.chunked_packet = ByteUtils.getBit(byte, 2);
+        this.last_chunk = ByteUtils.getBit(byte, 3);
     }
 }

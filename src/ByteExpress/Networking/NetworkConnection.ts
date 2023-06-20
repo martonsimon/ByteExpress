@@ -4,7 +4,7 @@ import { Serializable } from "../Serialization/Serializable";
 import { PacketManager } from "../Packets/PacketManager";
 import { ByteStream } from "../ByteStream/ByteStream";
 import { ByteStreamWriter } from "../ByteStream/ByteStreamWriter";
-import { TestPacket1 } from "../Packets/TestPackets/TestPacket1";
+import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
 
 /**
  * Manages and track the state of each connection,
@@ -35,6 +35,7 @@ export class NetworkConnection{
 
     private buffer: ByteStream; //buffers the incoming data to form a complete packet (NOTE: the program supposes that fragments of a packet arrives in order, just like in case of TCP/IP or websockets. However, the complete packets can be out of order to allow multiple requests at a time)
     private requiredPacketLength: number; //required bytes to create a packet, if -1 then it cannot be determined
+    private packetBuffers: Array<PacketBuffer>; //Buffers packets for each individual chunk, but not for a fragmented incoming data.
 
     constructor(
         id: number,
@@ -65,6 +66,7 @@ export class NetworkConnection{
         this.sendTimeout = undefined;
         this.buffer = new ByteStream();
         this.requiredPacketLength = -1;
+        this.packetBuffers = new Array<PacketBuffer>();
 
         this.checkPayloadRestrictions();
     }
@@ -93,10 +95,13 @@ export class NetworkConnection{
             let fragments = Math.ceil(length / this.maxSinglePacketPayload);
             for (let i = 0; i < fragments; i++){
                 let allowedPayload = i == 0 ? this.maxChunkedPacketPayload : this.maxChunkedPacketPayloadContinuous;
+                let lastChunk = (i == fragments - 1);
+
                 let toRead = Math.min(allowedPayload, data.getRemainingAmount());
                 let fragmentData = data.read(toRead);
                 let wrapper = new TransferWrapper();
                 wrapper.flags.chunked_packet = true;
+                wrapper.flags.last_chunk = lastChunk;
                 wrapper.packet_sequence = sequence;
                 wrapper.chunk_id = i;
                 wrapper.packet_id = packetId;
@@ -161,7 +166,7 @@ export class NetworkConnection{
     }
 
     public inboundData(data: Uint8Array): void{
-        this.buffer.write(data);
+        this.buffer.write(data.slice(0, 10));
         this._processBuffer();
     }
     private _processBuffer(){
@@ -206,7 +211,31 @@ export class NetworkConnection{
         console.log(packet.toJson());
     }
     private onPacketChunk(packet: TransferWrapper){
+        //Find existing
+        let sequence = packet.packet_sequence;
+        let initialChunk = packet.chunk_id == 0;
+        let lastChunk = packet.flags.last_chunk;
+        let buffer = this.packetBuffers.find(x => x.sequence == sequence);
 
+        //If there is a packet stuck with the same sequence ID, drop it
+        if (buffer && initialChunk){
+            this.packetBuffers.splice(this.packetBuffers.findIndex(x => x.sequence == sequence), 1);
+            buffer = undefined;
+        }
+
+        //If there is buffer for the given sequence
+        if (buffer){
+            buffer.onChunk(packet);
+            if (lastChunk){
+                this.onPacket(buffer.toPacket());
+            }
+        }
+        //If this is a new packet
+        else if (initialChunk){
+            buffer = new PacketBuffer(packet, this.packetManager);
+            this.packetBuffers.push(buffer);
+        }else
+            throw new Error("Invalid packet. Chunk ID, sequence and flags are incorrect");
     }
 
     /**
@@ -253,8 +282,10 @@ export class NetworkConnection{
         if (!cls)
             throw new Error(`Extracting packet failed. Packet with ID: ${wrapper.packet_id} does not exist`);
         
-        //let packet = new cls();
-        return new TestPacket1();
+        let packet = new cls();
+        packet.fromBytes(new ByteStreamReader(data));
+
+        return packet;
     }
     /**
      * Increments the outgoing chunked packet
@@ -278,8 +309,11 @@ class PacketBuffer{
     sequence: number;
     packetId: number;
     chunks: ByteStreamWriter;
+    private readonly packetManager: PacketManager;
 
-    constructor(packet: TransferWrapper){
+    constructor(packet: TransferWrapper, packetManager: PacketManager){
+        this.packetManager = packetManager;
+
         this.sequence = packet.packet_sequence;
         this.packetId = packet.packet_id;
         this.chunks = new ByteStreamWriter();
@@ -288,5 +322,15 @@ class PacketBuffer{
 
     public onChunk(packet: TransferWrapper){
         this.chunks.write(packet.payload);
+    }
+
+    public toPacket(): Serializable{
+        let cls = this.packetManager.getClsById(this.packetId);
+        if (!cls)
+            throw new Error(`Extracting packet failed. Packet with ID: ${this.packetId} does not exist`);
+
+        let packet = new cls();
+        packet.fromBytes(this.chunks.toStreamReader());
+        return packet;
     }
 }

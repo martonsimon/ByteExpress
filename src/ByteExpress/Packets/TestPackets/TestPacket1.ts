@@ -32,12 +32,22 @@ export class TestPacket1 extends Serializable{
         this.initSerializer();
         this.addNumber(this.number1, 2);
         this.addNumber(this.number2, 2);
+        this.addNumber(this.text1.length, 4);
         this.addString(this.text1);
+        this.addNumber(this.text2.length, 4);
         this.addString(this.text2);
         
         return this.getSerialized();
     }
     fromBytes(stream: ByteStreamReader): boolean{
-        throw new Error("Not implemented");
+        this.initDeserializer(stream);
+        this.number1 = this.getNumber(2);
+        this.number2 = this.getNumber(2);
+        let text1_length = this.getNumber(4);
+        this.text1 = this.getString(text1_length);
+        let text2_length = this.getNumber(4);
+        this.text2 = this.getString(text2_length);
+
+        return true;
     }
 }

@@ -31,7 +31,7 @@ export function outboundCb(id: number, data: Uint8Array, ctx?: CallbackContext){
 }
 
 let network = new NetworkHandler(outboundCb, {
-    maxPacketSize: 25,
+    maxPacketSize: 255,
     connectionSendRate: 0,
 });
 network.connectClient(0);
