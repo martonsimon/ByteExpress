@@ -3,7 +3,7 @@ import { TransferWrapper } from "./NetworkingPackets/TransferWrapper";
 import { TestPacket1 } from "./TestPackets/TestPacket1";
 
 type ClassIdPair = {
-    cls: typeof Serializable,
+    cls: new () => Serializable,
     id: number
 }
 /**
@@ -26,8 +26,8 @@ export class PacketManager{
      * @param packet - Constructor of a packet class extending Serializable
      * @param id - ID used for transmission from 0 - 60 000 (inclusive)
      */
-    public addPacket(packet: typeof Serializable, id: number){ this._addPacket(packet, id, true); }
-    private _addPacket(packet: typeof Serializable, id: number, rangeCheck: boolean = false){  
+    public addPacket(packet: new () => Serializable, id: number){ this._addPacket(packet, id, true); }
+    private _addPacket(packet: new () => Serializable, id: number, rangeCheck: boolean = false){  
         if (rangeCheck && (id < 0 || id > 60000))
             throw new Error("The packet ID must be in the range of 0 and 60 000");
         this.packetList.push({cls: packet, id: id});
@@ -47,7 +47,7 @@ export class PacketManager{
      * @param id - ID of a packet
      * @returns - constructor | undefined
      */
-    public getClsById(id: number): typeof Serializable | undefined{
+    public getClsById(id: number): (new () => Serializable) | undefined{
         const pair = this.packetList.find(pair => pair.id === id);
         return pair ? pair.cls : undefined;
     }
@@ -57,7 +57,7 @@ export class PacketManager{
      * @param packet - A packet instance
      * @returns - constructor | undefined
      */
-    public getClsByInstance(packet: Serializable): typeof Serializable | undefined{
+    public getClsByInstance(packet: Serializable): (new () => Serializable) | undefined{
         const pair = this.packetList.find(pair => packet instanceof pair.cls);
         return pair ? pair.cls : undefined;
     }
@@ -67,7 +67,7 @@ export class PacketManager{
      * @param cls - class constructor
      * @returns ID | undefined
      */ 
-    public getIdByCls(cls: typeof Serializable): number | undefined{
+    public getIdByCls(cls: new () => Serializable): number | undefined{
         const pair = this.packetList.find(pair => pair.cls === cls);
         return pair ? pair.id : undefined;
     }

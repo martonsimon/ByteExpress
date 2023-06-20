@@ -60,10 +60,6 @@ export class NetworkHandler{
         this.streamQueueSize = networkSettings?.streamQueueSize ?? 128;
 
         this.packetManager = new PacketManager();
-        let cls = this.packetManager.getClsById2(2);
-        let clsPacket = new cls();
-        console.log(clsPacket);
-        console.log(clsPacket);
     }
 
     /**
