@@ -2,6 +2,7 @@ import { Serializable } from "../../Serialization/Serializable";
 import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { Flags } from "../../ByteUtils/Flags";
 import { ByteUtils } from "../../ByteUtils/ByteUtils";
+import { ByteStream } from "../../ByteStream/ByteStream";
 
 /**
  * The class wraps other communication packets inside. The purpose
@@ -40,6 +41,8 @@ export class TransferWrapper extends Serializable{
     //payload
     payload: Uint8Array; //payload_length
 
+    private totalPacketLength: number;
+
     constructor(data?: ByteStreamReader | string | undefined){
         super(data);
         this.flags = new TransferWrapperFlags();
@@ -48,6 +51,7 @@ export class TransferWrapper extends Serializable{
         this.packet_id = 0;
         this.payload_length = 0;
         this.payload = new Uint8Array(0);
+        this.totalPacketLength = -1;
     }
     toJson(): object{
         const obj = {
@@ -88,8 +92,47 @@ export class TransferWrapper extends Serializable{
     }
     fromBytes(stream: ByteStreamReader): boolean{
         this.initDeserializer(stream);
+        let totalPacketSize = -1;
+        //Read the flag to get information about packet structure
+        if (!this.isAvailable(1))
+            return false;
+        this.flags.fromByte(this.getBytes(1)![0]);
+        totalPacketSize += 1;
+
+        //If the packet is chunked
+        if (this.flags.chunked_packet){
+            //Sequence and chunk id
+            if (!this.isAvailable(3)) //1 byte for sequence and 2 byte for chunk id
+                return false;
+            this.packet_sequence = this.getNumber(1);
+            this.chunk_id = this.getNumber(2);
+            totalPacketSize += 3;
+        }
+
+        //Read the packet ID (for chunked and unchunked)
+        if (this.chunk_id == 0){
+            if (!this.isAvailable(2))
+                return false;
+            this.packet_id = this.getNumber(2);
+            totalPacketSize += 2;
+        }
+        
+        //Find payload length
+        if (!this.isAvailable(2))
+            return false;
+        this.payload_length = this.getNumber(2);
+        totalPacketSize += 2;
+        totalPacketSize += this.payload_length;
+        this.totalPacketLength = totalPacketSize;
+
+        //Read payload
+        if (!this.isAvailable(this.payload_length))
+            return false;
+        this.payload = this.getBytes(this.payload_length)!;
+
         return true;
     }
+    public getTotalLength(): number { return this.totalPacketLength; }
 }
 
 export class TransferWrapperFlags extends Flags{

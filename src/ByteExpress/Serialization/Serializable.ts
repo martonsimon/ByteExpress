@@ -85,4 +85,10 @@ export abstract class Serializable{
             throw new Error("stream is empty");
         return this.streamReader.read(amount);
     }
+
+    public isAvailable(amount: number): boolean{
+        if (!this.streamReader)
+            throw new Error("stream is empty");
+        return this.streamReader.getRemainingAmount() >= amount;
+    }
 }

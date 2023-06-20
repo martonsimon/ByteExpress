@@ -73,12 +73,12 @@ export class ByteStreamBase {
   
         //return undefined if there is nothing to read
         if (newAmount <= 0) {
-            console.error('Error: No more bytes to read.');
+            console.log('Error: No more bytes to read.');
             return undefined;
         }
         //Warn if the function returns less than expected
         if (newAmount != amount)
-            console.warn("Warn: The read function expected more data to be read, but less data is available");
+            console.log("Warn: The read function expected more data to be read, but less data is available");
 
         //Move head and return buffer
         let startIndex = this.head_;

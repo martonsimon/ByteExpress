@@ -4,7 +4,17 @@ import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
 
 //Callback type for outbound data
-export type Callback = (id: number, data: Uint8Array) => void;
+export type Callback = (id: number, data: Uint8Array, ctx?: CallbackContext) => void;
+export type CallbackContext = {
+    original_packet: TransferWrapper,
+
+    connection_id: number,
+    last_sent_at: number,
+    packets_delta_ack: number,
+    max_single_packet_payload: number,
+    max_chunked_packet_payload: number,
+    next_sequence: number,
+};
 //Optional network settings
 type NetworkSettings = {
     maxPacketSize?: number,
@@ -50,6 +60,10 @@ export class NetworkHandler{
         this.streamQueueSize = networkSettings?.streamQueueSize ?? 128;
 
         this.packetManager = new PacketManager();
+        let cls = this.packetManager.getClsById2(2);
+        let clsPacket = new cls();
+        console.log(clsPacket);
+        console.log(clsPacket);
     }
 
     /**
@@ -60,7 +74,13 @@ export class NetworkHandler{
      * @param data Data received
      */
     public inboundData(id: number, data: Uint8Array | string){
-
+        let bytes: Uint8Array;
+        if (typeof data === 'string')
+            bytes = this.encoder.encode(data);
+        else
+            bytes = data;
+        let connection = this.connections.find(e => e.id == id);
+        connection?.inboundData(bytes);
     }
     /**
      * Sets the outbound callback that must be sent to the 
