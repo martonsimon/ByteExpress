@@ -86,9 +86,10 @@ TransferWrapper:
 
 RequestPacket
     flags:
+        endpoint_is_string
         require_response
-        accept_multiple_response //event_stream_requset //expects multiple packets as a response
-    endpoint
+        multiple_response
+    endpoint string or packet
     request_id (if require response)
     payload (packet_id, packet_length, raw)
 ResponsePacket
@@ -97,6 +98,9 @@ ResponsePacket
         error_respone
     request_id
     payload
+RequestError
+    cause
+
 TunnelRequest
     endpoint
     tunnel_id

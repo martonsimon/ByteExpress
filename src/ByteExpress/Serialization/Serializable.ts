@@ -47,6 +47,9 @@ export abstract class Serializable{
     public addString(text: string){
         this.checkInit();
         let data = ByteUtils.stringToBytes(text);
+        let length = data.length;
+
+        this.addNumber(length, 2);
         this.stream?.write(data);
     }
     public addPacket(packet: Serializable){
@@ -66,9 +69,11 @@ export abstract class Serializable{
         return number;
     }
 
-    public getString(length: number): string{
+    public getString(): string{
         if (!this.streamReader)
             throw new Error("stream is empty");
+
+        let length = this.getNumber(2);
         let text = ByteUtils.bytesToString(this.streamReader.read(length)!);
         return text;
     }

@@ -77,7 +77,7 @@ export class NetworkConnection{
      * @param packet Packet subclass of Serializable
      * @returns false if failed (e.g buffer is full)
      */
-    public sendPacket(packet: Serializable): boolean{
+    public sendPacket(packet: Serializable, placeAtBeginning: boolean = false, flush: boolean = false): boolean{
          let data = packet.toBytes();
          let length = data.getLength();
          let packetId = this.packetManager.getIdByInstance(packet);
@@ -108,7 +108,7 @@ export class NetworkConnection{
                 wrapper.payload_length = toRead;
                 wrapper.payload = fragmentData!;
 
-                this.queuePacket(wrapper);
+                this.queuePacket(wrapper, placeAtBeginning);
             }
          }
          else{
@@ -118,9 +118,9 @@ export class NetworkConnection{
             wrapper.payload_length = length;
             wrapper.payload = data.readAll()!;
 
-            this.queuePacket(wrapper);
+            this.queuePacket(wrapper, placeAtBeginning);
          }
-         this.flushOutboundQueue();
+         this.flushOutboundQueue(flush);
          return true;
     }
 
@@ -128,16 +128,19 @@ export class NetworkConnection{
      * Queues a given transfer wrapper
      * @param packet Transfer object
      */
-    private queuePacket(packet: TransferWrapper){
-        this.outboundQueue.push(packet);
+    private queuePacket(packet: TransferWrapper, placeAtBeginning: boolean = false){
+        if (placeAtBeginning)
+            this.outboundQueue.unshift(packet);
+        else
+            this.outboundQueue.push(packet);
     }
 
-    private flushOutboundQueue(){
-        if (this.sendTimeout)
+    private flushOutboundQueue(flushImmediately: boolean = false){
+        if (this.sendTimeout && !flushImmediately)
             return;
         if (this.outboundQueue.length == 0)
             return;
-        if (this.waitingForAck())
+        if (this.waitingForAck() && !flushImmediately)
             return;
         
         this.packetsDeltaAck++;
@@ -156,6 +159,8 @@ export class NetworkConnection{
         this.outboundCb(this.id, packetData, ctx);
 
         if (this.sendRate){ //set a timeout
+            if (this.sendTimeout && flushImmediately) //clear if there is a request must be flushed
+                clearTimeout(this.sendTimeout);
             this.sendTimeout = setTimeout(() => {
                 this.sendTimeout = undefined;
                 this.flushOutboundQueue();
@@ -186,9 +191,13 @@ export class NetworkConnection{
         //if success, reset buffer, handle packet
         //and try to read the remaining
         if (success){
+            //Reset buffer
             let newBuffer = stream.getRemainingAmount() ? stream.readRemaining() : new Uint8Array();
             this.buffer = new ByteStream(newBuffer);
             this.requiredPacketLength = -1;
+
+            //Handle ACK
+            this.handleAck(packet);
 
             //Handle packet
             if (!packet.flags.chunked_packet)
@@ -196,7 +205,7 @@ export class NetworkConnection{
             else
                 this.onPacketChunk(packet);
             
-
+            //Process remaining if any
             this._processBuffer();
         }
         //else modify the minimum required data if can
@@ -287,12 +296,51 @@ export class NetworkConnection{
 
         return packet;
     }
+    private handleAck(packet: TransferWrapper){
+        //This method handles the inbound requests
+        //and resets the number of packets sent
+        //since the last request.
+
+        //If the inbound packet requires ACK and this
+        //client is also waiting for ACK, then the conflict
+        //must be resolved
+        if (packet.flags.require_ack && this.waitingForAck())
+            this.sendAck(true);
+        else if (packet.flags.require_ack && !this.waitingForAck())
+            this.sendAck(false);
+        
+        //If the inbound packet is an ACK packet
+        if (packet.flags.ack){
+            this.packetsDeltaAck = 0;
+        }
+    }
+    private sendAck(forceSend: boolean){
+        //If forceSend, then create the ACK, place it at
+        //the front of the queue (if there is), and send it
+        //no matter if waitingForAck() is true
+        if (forceSend){
+            let ack = TransferWrapper.ACK;
+            this.sendPacket(ack, true, true); //place at the beginning and flush
+        }
+
+        //If forceSend is false, then mark the first
+        //element in the queue as an ACK, or create an ACK
+        //and queue it
+        if (!forceSend){
+            let packet = this.outboundQueue[0];
+            if (packet)
+                packet.flags.ack = true;
+            else
+                this.sendPacket(TransferWrapper.ACK, true, false); //place at the beginning but do not flush immediately
+        }
+    }
+
     /**
      * Increments the outgoing chunked packet
      * sequence by 1 and handles roll overs
      */
     private incrementSequence(){ this.nextSequence = (this.nextSequence + 1) % 255; }
-    private waitingForAck(): boolean{ return this.packetsDeltaAck == this.packetsPerAck; }
+    private waitingForAck(): boolean{ return this.packetsDeltaAck >= this.packetsPerAck; }
     private waitingForDelay(): boolean{
         return (Date.now() - this.lastSentAt) > this.sendRate;
         

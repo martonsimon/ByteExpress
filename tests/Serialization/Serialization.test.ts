@@ -42,7 +42,7 @@ describe('Testing Serialization class', () => {
             this.number1 = this.getNumber(2);
             console.log(this.number1);
             //stream.printDebug();
-            this.text1 = this.getString(5);
+            this.text1 = this.getString();
             console.log(this.text1);
             //stream.printDebug();
             this.packet1 = this.getPacket(SerializationTestPacket1);
@@ -62,6 +62,7 @@ describe('Testing Serialization class', () => {
         let data = packet.toBytes().readAll();
         expect(data).toEqual(new Uint8Array([
             0, 100, //number 1
+            0, 5, //text 1 length
             72, 101, 108, 108, 111, //text 1
         ]));
     });
@@ -76,6 +77,7 @@ describe('Testing Serialization class', () => {
         let data = packet2.toBytes().readAll();
         expect(data).toEqual(new Uint8Array([
             0, 100, //number 1
+            0, 5, //text 1 length
             72, 101, 108, 108, 111, //text 1
             0, 2, //nested packets data
         ]));
@@ -91,6 +93,7 @@ describe('Testing Serialization class', () => {
         let data = packet2.toBytes().readAll();
         expect(data).toEqual(new Uint8Array([
             0, 100, //number 1
+            0, 5, //text 1 length
             72, 101, 108, 108, 111, //text 1
             0, 2, //nested packets data
         ]));
@@ -100,6 +103,7 @@ describe('Testing Serialization class', () => {
         newPacket.fromBytes(new ByteStreamReader(data));
         expect(newPacket.toBytes().readAll()).toEqual(new Uint8Array([
             0, 100, //number 1
+            0, 5, //text 1 length
             72, 101, 108, 108, 111, //text 1
             0, 2, //nested packets data
         ]));

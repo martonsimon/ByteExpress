@@ -133,6 +133,12 @@ export class TransferWrapper extends Serializable{
         return true;
     }
     public getTotalLength(): number { return this.totalPacketLength; }
+
+    public static get ACK(): TransferWrapper{
+        let ack = new TransferWrapper();
+        ack.flags.ack = true;
+        return ack;
+    }
 }
 
 export class TransferWrapperFlags extends Flags{
