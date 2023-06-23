@@ -97,6 +97,7 @@ ResponsePacket
         close_connection //when sending the last response from event stream
         error_respone
     request_id
+    code
     payload
 RequestError
     cause

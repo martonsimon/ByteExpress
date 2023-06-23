@@ -25,9 +25,12 @@ export class RequestPacket extends Serializable{
     private readonly packetManager: PacketManager;
     private payloadType: string | undefined;
 
-    constructor(data: ByteStreamReader | string | undefined, packetManager: PacketManager){
+    constructor(data?: ByteStreamReader | string | undefined, packetManager?: PacketManager){
         super(data);
-        this.packetManager = packetManager;
+        if (packetManager)
+            this.packetManager = packetManager;
+        else
+            throw new Error("Please set a packet manager instance through the constructor");
     }
 
     setPayload(packet: Serializable){

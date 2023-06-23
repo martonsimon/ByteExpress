@@ -1,4 +1,8 @@
 import { Serializable } from "../Serialization/Serializable";
+import { Payload } from "./NetworkingPackets/Payload";
+import { RequestError } from "./NetworkingPackets/RequestError";
+import { RequestPacket } from "./NetworkingPackets/RequestPacket";
+import { ResponsePacket } from "./NetworkingPackets/ResponsePacket";
 import { TransferWrapper } from "./NetworkingPackets/TransferWrapper";
 import { TestPacket1 } from "./TestPackets/TestPacket1";
 
@@ -19,6 +23,10 @@ export class PacketManager{
         //Set up packets required for networking (in the range of 60001 -> 65536 both inclusive)
         this._addPacket(TestPacket1,            60_001);
         this._addPacket(TransferWrapper,        60_002);
+        this._addPacket(RequestPacket,          60_003);
+        this._addPacket(ResponsePacket,         60_004);
+        this._addPacket(RequestError,           60_005);
+        this._addPacket(Payload,                60_006);
     }
 
     /**

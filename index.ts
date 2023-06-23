@@ -32,14 +32,14 @@ wrapper.payload = new Uint8Array([255, 255]);*/
 //console.log(wrapper.toBytes().readAll());
 
 export function outboundCb1(id: number, data: Uint8Array, ctx?: CallbackContext){
-    console.log(`[client]: Received data for connection ID = ${id}, data (${data.length}): ${data}`);
-    //console.log(ctx?.original_packet.toJson());
-    networkClient.inboundData(0, data);
-}
-export function outboundCb2(id: number, data: Uint8Array, ctx?: CallbackContext){
-    console.log(`[server]: Received data for connection ID = ${id}, data (${data.length}): ${data}`);
+    console.log(`[client]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
     //console.log(ctx?.original_packet.toJson());
     networkServer.inboundData(0, data);
+}
+export function outboundCb2(id: number, data: Uint8Array, ctx?: CallbackContext){
+    console.log(`[server]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
+    //console.log(ctx?.original_packet.toJson());
+    networkClient.inboundData(0, data);
 }
 
 let networkClient = new NetworkHandler(outboundCb1, {
@@ -89,3 +89,14 @@ console.log(res.toBytes().readAll());
 let res2 = new ResponsePacket(undefined, pm);
 res2.fromBytes(res.toBytes());
 console.log(res2.toJson());*/
+
+networkServer.onRequest(0, TestPacket1, ctx => {
+    console.log("[server] got a request for TestPacket1");
+});
+
+
+networkClient.request(0, testPacket1, true).then(ctx => {
+    console.log("resolved request");
+}).catch(ctx => {
+    console.log("error");
+});

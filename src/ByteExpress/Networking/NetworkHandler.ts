@@ -2,6 +2,7 @@ import { TransferWrapper } from "../Packets/NetworkingPackets/TransferWrapper";
 import { PacketManager } from "../Packets/PacketManager";
 import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
+import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext } from "./RequestHandler";
 
 //Callback type for outbound data
 export type Callback = (id: number, data: Uint8Array, ctx?: CallbackContext) => void;
@@ -110,5 +111,13 @@ export class NetworkHandler{
     public debugSendRaw(id: number, packet: Serializable){
         let connection = this.connections.find(e => e.id == id);
         connection!.sendPacket(packet);
+    }
+    public request(connectionId: number, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<RequestContext>{
+        let connection = this.connections.find(e => e.id == connectionId);
+        return connection!.request(packet, expectResponse, endpointUrl);
+    }
+    public onRequest(connectionId: number, endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        let connection = this.connections.find(e => e.id == connectionId);
+        return connection!.onRequest(endpoint, callback);
     }
 }

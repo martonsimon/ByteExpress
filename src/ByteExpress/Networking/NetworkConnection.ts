@@ -5,6 +5,9 @@ import { PacketManager } from "../Packets/PacketManager";
 import { ByteStream } from "../ByteStream/ByteStream";
 import { ByteStreamWriter } from "../ByteStream/ByteStreamWriter";
 import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
+import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler } from "./RequestHandler";
+import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
+import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 
 /**
  * Manages and track the state of each connection,
@@ -36,6 +39,7 @@ export class NetworkConnection{
     private buffer: ByteStream; //buffers the incoming data to form a complete packet (NOTE: the program supposes that fragments of a packet arrives in order, just like in case of TCP/IP or websockets. However, the complete packets can be out of order to allow multiple requests at a time)
     private requiredPacketLength: number; //required bytes to create a packet, if -1 then it cannot be determined
     private packetBuffers: Array<PacketBuffer>; //Buffers packets for each individual chunk, but not for a fragmented incoming data.
+    private requestHandler: RequestHandler; //handler class for managing request and events
 
     constructor(
         id: number,
@@ -67,6 +71,10 @@ export class NetworkConnection{
         this.buffer = new ByteStream();
         this.requiredPacketLength = -1;
         this.packetBuffers = new Array<PacketBuffer>();
+        this.requestHandler = new RequestHandler(
+            this.packetManager,
+            this,
+        );
 
         this.checkPayloadRestrictions();
     }
@@ -171,7 +179,7 @@ export class NetworkConnection{
     }
 
     public inboundData(data: Uint8Array): void{
-        this.buffer.write(data.slice(0, 10));
+        this.buffer.write(data);
         this._processBuffer();
     }
     private _processBuffer(){
@@ -218,6 +226,8 @@ export class NetworkConnection{
     private onPacket(packet: Serializable){
         console.log("a packet arrived");
         console.log(packet.toJson());
+
+        this.requestHandler.inboundPacket(packet);
     }
     private onPacketChunk(packet: TransferWrapper){
         //Find existing
@@ -291,7 +301,13 @@ export class NetworkConnection{
         if (!cls)
             throw new Error(`Extracting packet failed. Packet with ID: ${wrapper.packet_id} does not exist`);
         
-        let packet = new cls();
+        //A few networking packets need access to packet manager instance
+        let packet: Serializable;
+        if (cls == RequestPacket)
+            packet = new RequestPacket(undefined, this.packetManager);
+        else
+            packet = new cls();
+        
         packet.fromBytes(new ByteStreamReader(data));
 
         return packet;
@@ -344,6 +360,13 @@ export class NetworkConnection{
     private waitingForDelay(): boolean{
         return (Date.now() - this.lastSentAt) > this.sendRate;
         
+    }
+
+    public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<RequestContext>{
+        return this.requestHandler.request(packet, expectResponse, endpointUrl);
+    }
+    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandler.onRequest(endpoint, callback);
     }
 }
 
