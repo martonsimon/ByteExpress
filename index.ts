@@ -90,6 +90,9 @@ let res2 = new ResponsePacket(undefined, pm);
 res2.fromBytes(res.toBytes());
 console.log(res2.toJson());*/
 
+//A TEST COMMENT
+
+
 networkServer.onRequest(0, TestPacket1, ctx => {
     console.log("[server] got a request for TestPacket1");
 });
