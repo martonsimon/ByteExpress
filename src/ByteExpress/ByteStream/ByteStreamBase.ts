@@ -29,9 +29,10 @@ export class ByteStreamBase {
      *              small, it is increased until the maximum size is reached.
      *              The function keeps track of the bytes written, and moves the head accordingly.
      * @param array - Array to be copied
+     * @param throwError - Throws an error instead of returning
      * @returns 
      */
-    protected write(array: Uint8Array): boolean {
+    protected write(array: Uint8Array, throwError: boolean = false): boolean {
         const size = array.length;
 
         //if array have more data than available
@@ -40,7 +41,8 @@ export class ByteStreamBase {
             const newSize = this.bufferSize_ + Math.ceil(additionalSize / this.bufferIncreaseStep_) * this.bufferIncreaseStep_; //increase size by the step size
   
             if (newSize > this.maxBufferSize_) {
-                console.error('Error: Buffer size exceeded maximum limit.');
+                if (throwError)
+                    throw new BufferSizeExceeded();
                 return false;
             }
             this.increaseBufferSize(newSize);
@@ -64,21 +66,19 @@ export class ByteStreamBase {
      *              If there isn't enough data, the remaining is returned and a warning is logged
      * @param amount - number of bytes to read
      * @param copyArray - return by reference or deep copy
+     * @param throwError - Throws an error instead of returning undefined
      * @returns - Uint8Array for the amount or undefined in case of error
      */
-    protected read(amount: number, copyArray: boolean = true): Uint8Array | undefined {
+    protected read(amount: number, copyArray: boolean = true, throwError: boolean = false): Uint8Array | undefined {
         //Make sure to do not read more data than is available to read
         //If the head have been moved forward without writing data, then there is nothing left to read
         let newAmount = Math.min(amount, this.bytesWritten_ - this.head_);
   
-        //return undefined if there is nothing to read
-        if (newAmount <= 0) {
-            console.log('Error: No more bytes to read.');
+        //return undefined if there is not enough data to read or throw an error
+        if (newAmount != newAmount && throwError)
+            throw new NotEnoughData();
+        if (newAmount != newAmount)
             return undefined;
-        }
-        //Warn if the function returns less than expected
-        if (newAmount != amount)
-            console.log("Warn: The read function expected more data to be read, but less data is available");
 
         //Move head and return buffer
         let startIndex = this.head_;
@@ -88,10 +88,14 @@ export class ByteStreamBase {
         else
             return this.buffer_.subarray(startIndex, startIndex + newAmount);
     }
-    protected readRemaining(copyArray: boolean = true): Uint8Array | undefined {
-        return this.read(this.getRemainingAmount(), copyArray);
+    protected readRemaining(copyArray: boolean = true): Uint8Array {
+        let data = this.read(this.getRemainingAmount(), copyArray);
+        if (data)
+            return data;
+        else
+            return new Uint8Array(0);
     }
-    protected readAll(copyArray: boolean = true): Uint8Array | undefined {
+    protected readAll(copyArray: boolean = true): Uint8Array {
         this.setHead(0);
         return this.readRemaining(copyArray);
     }
@@ -105,19 +109,15 @@ export class ByteStreamBase {
 
     protected setHead(newHead: number): void {
         if (newHead > this.bufferSize_)
-            console.warn("The new head would be outside the range of buffer");
+            throw new Error("The head is outside of the buffer range");
         this.head_ = Math.min(newHead, this.bufferSize_);
     }
     protected setBufferSize(newBufferSize: number): void {
-        if (newBufferSize > this.maxBufferSize_) {
-            console.error('Error: Buffer size exceeds the maximum limit.');
-            return;
-        }
+        if (newBufferSize > this.maxBufferSize_)
+            throw new Error("Buffer size exceeds the maximum limit");
 
-        if (newBufferSize < this.head_) {
-            console.error('Error: New buffer size is smaller than the current head position.');
-            return;
-        }
+        if (newBufferSize < this.head_)
+            throw new Error("Error: New buffer size is smaller than the current head position");
   
         this.increaseBufferSize(newBufferSize);
     }
@@ -125,7 +125,7 @@ export class ByteStreamBase {
         if (! (newBufferSize < this.bufferSize_))
             this.maxBufferSize_ = newBufferSize;
         else
-            console.error("Error: Max buffer size cannot be larger then the current buffer size");
+            throw new Error("Max buffer size cannot be smaller then the current buffer size");
     }
 
     protected printDebug(): void{
@@ -147,4 +147,18 @@ export class ByteStreamBase {
         this.bufferSize_ = newSize;
     }
   }
-  
+
+class BufferSizeExceeded extends Error{
+    constructor(){
+        const msg = "The buffer size could not be extended to accomodate new data";
+        super(msg);
+        this.name = "BufferSizeExceeded";
+    }
+}
+class NotEnoughData extends Error{
+    constructor(){
+        const msg = "The buffer does not have enough data to read the specified amount";
+        super(msg);
+        this.name = "NotEnoughData";
+    }
+}

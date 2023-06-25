@@ -8,8 +8,8 @@ export class TestPacket1 extends Serializable{
     text1: string = "";
     text2: string = "";
 
-    constructor(data?: ByteStreamReader | string | undefined){
-        super(data);
+    constructor(){
+        super();
     }
     toJson(): object{
         const obj = {

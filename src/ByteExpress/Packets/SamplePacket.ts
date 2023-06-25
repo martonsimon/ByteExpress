@@ -9,8 +9,8 @@ export class SamplePacket extends Serializable{
     //text1: string = "Hi!";
     //bytes1: Uint8Array = new Uint8Array(0);
 
-    constructor(data?: ByteStreamReader | string | undefined){
-        super(data);
+    constructor(){
+        super();
     }
     toJson(): object{
         /*const obj = {
