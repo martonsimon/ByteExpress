@@ -1,6 +1,7 @@
 import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { Serializable } from "../../Serialization/Serializable";
 import { PacketManager } from "../PacketManager";
+import { NullPacket } from "./NullPacket";
 
 /**
  * Makes easier to encode and decode payloads
@@ -61,5 +62,17 @@ export class Payload extends Serializable{
         packet.fromBytes(new ByteStreamReader(this.payload));
 
         return packet;
+    }
+    public fromPacket(packetManager: PacketManager, packet: Serializable | undefined){
+        let payload = packet ? packet : new NullPacket();
+        let id = packetManager.getIdByInstance(payload);
+        if (!id)
+            throw new Error("Unknown packet");
+        let data = payload.toBytes().readAll();
+        let dataLength = data!.length;
+
+        this.packetId = id;
+        this.payloadLength = dataLength;
+        this.payload = data!;
     }
 }

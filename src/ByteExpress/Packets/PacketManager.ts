@@ -1,4 +1,5 @@
 import { Serializable } from "../Serialization/Serializable";
+import { NullPacket } from "./NetworkingPackets/NullPacket";
 import { Payload } from "./NetworkingPackets/Payload";
 import { RequestError } from "./NetworkingPackets/RequestError";
 import { RequestPacket } from "./NetworkingPackets/RequestPacket";
@@ -27,6 +28,7 @@ export class PacketManager{
         this._addPacket(ResponsePacket,         60_004);
         this._addPacket(RequestError,           60_005);
         this._addPacket(Payload,                60_006);
+        this._addPacket(NullPacket,             60_007);
     }
 
     /**

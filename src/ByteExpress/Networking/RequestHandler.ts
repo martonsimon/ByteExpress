@@ -4,6 +4,7 @@ import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 import { Serializable } from "../Serialization/Serializable";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { Payload } from "../Packets/NetworkingPackets/Payload";
+import { clearScreenDown } from "readline";
 
 export type RequestSettings = {
     timeout: number, //timeout in ms
@@ -17,6 +18,7 @@ export class RequestHandler{
 
     private nextSequence: number; //the ID used for the next outbound request
     private outboundRequests: Array<RequestContext>;
+    private inboundRequests: Array<RequestContext>;
     //private requestHandlers: CallbackHandler<(number | string), ((ctx: RequestContext) => void)>;
     private requestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>;
 
@@ -31,6 +33,7 @@ export class RequestHandler{
 
         this.nextSequence = 0;
         this.outboundRequests = new Array<RequestContext>();
+        this.inboundRequests = new Array<RequestContext>();
         this.requestHandlers = new CallbackHandler<(number | string), ((ctx: RequestContext) => void)>();
 
         this.timeout = requestSettings?.timeout ?? 10_000;
@@ -50,13 +53,15 @@ export class RequestHandler{
           expectResponse,
           false,
           this.timeout,
+          true,
           endpointUrl,
         );
         let ctx = new RequestContext(
             this.connection,
             this.packetManager,
             req,
-            this.timeout
+            this.timeout,
+            true,
         );
 
 
@@ -71,8 +76,43 @@ export class RequestHandler{
         this.flushRequest(req.generatePacket(true));
         return ctx.promise;
     }
+    private inboundRequest(packet: RequestPacket){
+        let sequence = packet.request_id;
+        this.abortRequest(sequence);
+
+        //Create request and context objects
+        let req = new Request(
+          this.packetManager,
+          sequence,
+          packet,
+          false,
+          false,
+          this.timeout,
+          false,
+          undefined,
+        );
+        let ctx = new RequestContext(
+            this.connection,
+            this.packetManager,
+            req,
+            this.timeout,
+            false
+        );
+
+
+        //Add to array
+        this.inboundRequests.push(ctx);
+
+        //handle
+        let key = packet.flags.endpoint_is_string ? packet.endpoint_str : packet.endpoint_id;
+        let handler = this.requestHandlers.find(key);
+        if (handler){
+            handler.getCallback()(ctx);
+        }
+    }
+
     public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        let endpointVal: number | string | undefined = endpoint instanceof Serializable ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
+        let endpointVal: number | string | undefined = Serializable.prototype.isPrototypeOf((endpoint as any).prototype) ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
         if (!endpointVal)
             throw new Error("Packet must be added to packet manager");
         return this.requestHandlers.addCallback(endpointVal, callback);
@@ -82,7 +122,7 @@ export class RequestHandler{
     public inboundPacket(packet: Serializable){
         //Handle request
         if (packet instanceof RequestPacket){
-            
+            this.inboundRequest(packet);
         }
 
         //Handle response
@@ -116,6 +156,13 @@ export class RequestHandler{
             if (req){
                 req.abort();
                 this.outboundRequests.splice(reqIndex, 1);
+            }
+        } else{
+            let reqIndex = this.inboundRequests.findIndex(x => x.req.sequence);
+            let req = this.inboundRequests[reqIndex];
+            if (req){
+                req.abort();
+                this.inboundRequests.splice(reqIndex, 1);
             }
         }
     }
@@ -194,8 +241,16 @@ export class Request{
         this.completed = false;
         this.timeout = timeout;
 
-        if (!outbound)
-            this.extractRequest(undef
+        if (!outbound){
+            let req = payload as RequestPacket;
+            this.sequence = req.request_id;
+            this.endpointUrl = req.endpoint_str;
+            this.endpointNumeric = req.endpoint_id;
+            this.expectResponse = req.flags.require_response;
+            this.multipleResponse = req.flags.multiple_response;
+
+            this.payload = req.payload.toPacket(packetManager);
+        }
     }
 
     /**
@@ -223,26 +278,52 @@ export class Request{
 
         return request;
     }
-    extractRequest(packet: RequestPacket){
-        this.endpointUrl = packet.endpoint_str;
-    }
 }
 
 export class Response{
     public readonly sequence: number;
     public readonly multipleResponse: boolean;
     public readonly packetManager: PacketManager;
+    public readonly outbound: boolean;
+    public readonly context: RequestContext;
 
     public payload?: Serializable;
+    public completed: boolean;
 
     constructor(
         packetManager: PacketManager,
         sequence: number,
-        multipleResponse: boolean
+        multipleResponse: boolean,
+        outbound: boolean,
+        context: RequestContext,
     ){
         this.packetManager = packetManager;
         this.sequence = sequence;
         this.multipleResponse = multipleResponse;
+        this.outbound = outbound;
+        this.context = context;
+
+        this.completed = false;
+    }
+
+    public write(packet: Serializable){
+        this._write(packet, 200, !this.multipleResponse);
+    }
+    public end(code: number){
+        this._write(undefined, code, true);
+    }
+    private _write(packet: Serializable | undefined, code: number, closeConnection: boolean){
+        this.completed = closeConnection;
+        let payload = new Payload();
+        payload.fromPacket(this.packetManager, packet);
+
+        let res = new ResponsePacket(undefined, this.packetManager);
+        res.flags.close_connection = closeConnection;
+        res.request_id = this.sequence;
+        res.code = code;
+        res.payload = payload;
+
+        this.context.outboundResponse(res, closeConnection);
     }
 }
 
@@ -252,6 +333,7 @@ export class RequestContext{
     public readonly endpointStr: string | undefined;
     public readonly endpointNumeric;
     public readonly packetManager: PacketManager;
+    public readonly outbound: boolean;
 
     public readonly req: Request;
     public readonly res: Response;
@@ -270,6 +352,7 @@ export class RequestContext{
         packetManager: PacketManager,
         request: Request,
         timeout: number,
+        outbound: boolean,
     ){
         this.connectionId = connection.id;
         this.connection = connection;
@@ -277,12 +360,15 @@ export class RequestContext{
         this.endpointNumeric = request.endpointNumeric;
         this.packetManager = packetManager;
         this.timeoutLength = timeout;
+        this.outbound = outbound;
 
         this.req = request;
         this.res = new Response(
             packetManager,
             request.sequence,
             request.multipleResponse,
+            outbound,
+            this,
         );
 
         this.promise = new Promise<RequestContext>((resolve, reject) => {
@@ -327,5 +413,12 @@ export class RequestContext{
         if (!this.req.multipleResponse){
             this.resolve();
         }
+    }
+
+    public outboundResponse(packet: ResponsePacket, closeConnection: boolean){
+        if (closeConnection){
+            this.completed = true;
+        }
+        this.connection.sendPacket(packet);
     }
 }

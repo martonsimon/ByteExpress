@@ -91,13 +91,19 @@ res2.fromBytes(res.toBytes());
 console.log(res2.toJson());*/
 
 
-networkServer.onRequest(0, TestPacket1, ctx => {
+let handler = networkServer.onRequest(0, TestPacket1, ctx => {
     console.log("[server] got a request for TestPacket1");
+    let data = ctx.req.payload as TestPacket1;
+    console.log(data.toJson());
+    ctx.res.end(200);
 });
 
-
+console.log("[client]: sennding request");
 networkClient.request(0, testPacket1, true).then(ctx => {
-    console.log("resolved request");
+    console.log("[client]: resolved request ");
+    console.log(ctx.res.payload.toJson());
 }).catch(ctx => {
-    console.log("error");
+    console.log("[client] request errored");
 });
+
+

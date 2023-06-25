@@ -225,7 +225,7 @@ export class NetworkConnection{
     }
     private onPacket(packet: Serializable){
         console.log("a packet arrived");
-        console.log(packet.toJson());
+        //console.log(packet.toJson());
 
         this.requestHandler.inboundPacket(packet);
     }
@@ -305,6 +305,8 @@ export class NetworkConnection{
         let packet: Serializable;
         if (cls == RequestPacket)
             packet = new RequestPacket(undefined, this.packetManager);
+        else if (cls == ResponsePacket)
+            packet = new ResponsePacket(undefined, this.packetManager);
         else
             packet = new cls();
         
