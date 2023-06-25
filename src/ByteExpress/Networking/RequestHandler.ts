@@ -266,7 +266,7 @@ export class Request{
         if (!packetId)
             throw new Error("Packet is not added");
 
-        let request = new RequestPacket(undefined, this.packetManager);
+        let request = new RequestPacket(this.packetManager);
         request.flags.endpoint_is_string = !!this.endpointUrl;
         request.flags.require_response = this.expectResponse;
         request.flags.multiple_response = this.multipleResponse;
@@ -317,7 +317,7 @@ export class Response{
         let payload = new Payload();
         payload.fromPacket(this.packetManager, packet);
 
-        let res = new ResponsePacket(undefined, this.packetManager);
+        let res = new ResponsePacket(this.packetManager);
         res.flags.close_connection = closeConnection;
         res.request_id = this.sequence;
         res.code = code;

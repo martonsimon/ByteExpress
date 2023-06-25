@@ -8,7 +8,9 @@ import { RequestPacket } from "./src/ByteExpress/Packets/NetworkingPackets/Reque
 import { ResponsePacket } from "./src/ByteExpress/Packets/NetworkingPackets/ResponsePacket";
 import { TransferWrapper } from "./src/ByteExpress/Packets/NetworkingPackets/TransferWrapper";
 import { PacketManager } from "./src/ByteExpress/Packets/PacketManager";
+import { SamplePacket } from "./src/ByteExpress/Packets/SamplePacket";
 import { TestPacket1 } from "./src/ByteExpress/Packets/TestPackets/TestPacket1";
+import { Serializable } from "./src/ByteExpress/Serialization/Serializable";
 
 const world = 'world';
 
@@ -101,9 +103,7 @@ let handler = networkServer.onRequest(0, TestPacket1, ctx => {
 console.log("[client]: sennding request");
 networkClient.request(0, testPacket1, true).then(ctx => {
     console.log("[client]: resolved request ");
-    console.log(ctx.res.payload.toJson());
+    console.log(ctx.res.payload!.toJson());
 }).catch(ctx => {
     console.log("[client] request errored");
 });
-
-

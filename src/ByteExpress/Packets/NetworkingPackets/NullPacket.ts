@@ -1,12 +1,9 @@
-import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { Serializable } from "../../Serialization/Serializable";
-import { PacketManager } from "../PacketManager";
+import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 
 export class NullPacket extends Serializable{
 
-    constructor(data?: ByteStreamReader | string | undefined){
-        super(data);
-    }
+    constructor(){ super(); }
     toJson(): object{
         return {msg: "<null packet>"};
     }

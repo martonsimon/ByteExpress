@@ -302,14 +302,9 @@ export class NetworkConnection{
             throw new Error(`Extracting packet failed. Packet with ID: ${wrapper.packet_id} does not exist`);
         
         //A few networking packets need access to packet manager instance
-        let packet: Serializable;
-        if (cls == RequestPacket)
-            packet = new RequestPacket(undefined, this.packetManager);
-        else if (cls == ResponsePacket)
-            packet = new ResponsePacket(undefined, this.packetManager);
-        else
-            packet = new cls();
-        
+        let packet: Serializable = new cls();
+        if (packet.requirePacketManager)
+            packet.packetManager = this.packetManager;
         packet.fromBytes(new ByteStreamReader(data));
 
         return packet;

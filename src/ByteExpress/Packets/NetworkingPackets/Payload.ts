@@ -1,5 +1,5 @@
-import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { Serializable } from "../../Serialization/Serializable";
+import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { PacketManager } from "../PacketManager";
 import { NullPacket } from "./NullPacket";
 
@@ -11,9 +11,7 @@ export class Payload extends Serializable{
     payloadLength: number = 0;
     payload: Uint8Array = new Uint8Array();
 
-    constructor(data?: ByteStreamReader | string | undefined){
-        super(data);
-    }
+    constructor(){ super(); }
     set(packetId: number, payloadLength: number, payload: Uint8Array){
         this.packetId = packetId;
         this.payloadLength = payloadLength;

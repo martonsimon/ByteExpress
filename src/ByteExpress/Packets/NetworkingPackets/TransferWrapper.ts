@@ -1,8 +1,7 @@
 import { Serializable } from "../../Serialization/Serializable";
 import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
-import { Flags } from "../../ByteUtils/Flags";
 import { ByteUtils } from "../../ByteUtils/ByteUtils";
-import { ByteStream } from "../../ByteStream/ByteStream";
+import { Flags } from "../../ByteUtils/Flags";
 
 /**
  * The class wraps other communication packets inside. The purpose
@@ -43,8 +42,8 @@ export class TransferWrapper extends Serializable{
 
     private totalPacketLength: number;
 
-    constructor(data?: ByteStreamReader | string | undefined){
-        super(data);
+    constructor(){
+        super();
         this.flags = new TransferWrapperFlags();
         this.packet_sequence = 0;
         this.chunk_id = 0;

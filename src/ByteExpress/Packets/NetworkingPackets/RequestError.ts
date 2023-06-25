@@ -1,6 +1,5 @@
-import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { Serializable } from "../../Serialization/Serializable";
-import { PacketManager } from "../PacketManager";
+import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { ErrorCause } from "./ErrorCause.enum";
 
 /**
@@ -9,9 +8,7 @@ import { ErrorCause } from "./ErrorCause.enum";
 export class RequestError extends Serializable{
     cause: ErrorCause = ErrorCause.NONE;
 
-    constructor(data?: ByteStreamReader | string | undefined){
-        super(data);
-    }
+    constructor(){ super(); }
 
     toJson(): object{
         let stringRepresentation;

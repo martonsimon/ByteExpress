@@ -15,15 +15,12 @@ export class ResponsePacket extends Serializable{
     code: number = 0; //a code indicating status
     payload: Payload = new Payload();
 
-    private readonly packetManager: PacketManager;
     private payloadType: string | undefined;
 
-    constructor(data?: ByteStreamReader | string | undefined, packetManager?: PacketManager){
-        super(data);
-        if (packetManager)
-            this.packetManager = packetManager;
-        else
-            throw new Error("Please set a packet manager instance through the constructor");
+    constructor(packetManager?: PacketManager){
+        super();
+        this.requirePacketManager = true;
+        this.packetManager = packetManager;
     }
 
     setPayload(packet: Serializable){
