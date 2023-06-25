@@ -1,11 +1,10 @@
 import { ByteUtils } from "./ByteUtils";
 
-function Flag(target: any, propertyKey: string) {
-    let flags: string[] = target.flags || [];
-    flags.push(propertyKey);
-    target.flags = flags;
-    
-}
+/**
+ * A flags base class for making it easier
+ * to serialize and deserialize
+ * flags.
+ */
 export abstract class Flags{
     protected flagsByte: number = 0;
 
@@ -20,6 +19,9 @@ export abstract class Flags{
     protected abstract fromByte(byte: number): void;
 }
 
+/**
+ * Example class
+ */
 export class MyFlags extends Flags{
 
     myFlag1: boolean = false;

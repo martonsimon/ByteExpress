@@ -1,7 +1,7 @@
+import { Serializable } from "../../Serialization/Serializable";
 import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 import { ByteUtils } from "../../ByteUtils/ByteUtils";
 import { Flags } from "../../ByteUtils/Flags";
-import { Serializable } from "../../Serialization/Serializable";
 import { PacketManager } from "../PacketManager";
 import { Payload } from "./Payload";
 

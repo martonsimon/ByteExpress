@@ -5,21 +5,21 @@ import { Serializable } from "../../src/ByteExpress/Serialization/Serializable";
 
 describe('Testing PacketManager class', () => {
     class TestCls1 extends Serializable{
-        constructor(){super(undefined);}
+        constructor(){super();}
         toJson(): object{ throw new Error("Not implemented"); }
         fromJson(data: string): boolean{ throw new Error("Not implemented"); }
         toBytes(): ByteStreamReader{ throw new Error("Not implemented"); }
         fromBytes(stream: ByteStreamReader): boolean{ throw new Error("Not implemented"); }
     }
     class TestCls2 extends Serializable{
-        constructor(){super(undefined);}
+        constructor(){super();}
         toJson(): object{ throw new Error("Not implemented"); }
         fromJson(data: string): boolean{ throw new Error("Not implemented"); }
         toBytes(): ByteStreamReader{ throw new Error("Not implemented"); }
         fromBytes(stream: ByteStreamReader): boolean{ throw new Error("Not implemented"); }
     }
     class TestCls3 extends Serializable{
-        constructor(){super(undefined);}
+        constructor(){super();}
         toJson(): object{ throw new Error("Not implemented"); }
         fromJson(data: string): boolean{ throw new Error("Not implemented"); }
         toBytes(): ByteStreamReader{ throw new Error("Not implemented"); }

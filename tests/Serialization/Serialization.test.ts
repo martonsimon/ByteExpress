@@ -5,7 +5,7 @@ import { Serializable } from "../../src/ByteExpress/Serialization/Serializable";
 describe('Testing Serialization class', () => {
     class SerializationTestPacket1 extends Serializable{
         number: number = 0;
-        constructor(data?: ByteStreamReader | string | undefined){ super(data); }
+        constructor(){ super(); }
         toJson(): object{ throw new Error(""); }
         fromJson(data: string): boolean{ throw new Error(""); }
         toBytes(): ByteStreamReader{
@@ -24,7 +24,7 @@ describe('Testing Serialization class', () => {
         number1: number = 0;
         text1: string = "";
         packet1: SerializationTestPacket1 | undefined;
-        constructor(data?: ByteStreamReader | string | undefined){ super(data); }
+        constructor(){ super(); }
         toJson(): object{ throw new Error(""); }
         fromJson(data: string): boolean{ throw new Error(""); }
         toBytes(): ByteStreamReader{
