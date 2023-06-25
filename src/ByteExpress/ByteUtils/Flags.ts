@@ -4,7 +4,7 @@ function Flag(target: any, propertyKey: string) {
     let flags: string[] = target.flags || [];
     flags.push(propertyKey);
     target.flags = flags;
-    //
+    
 }
 export abstract class Flags{
     protected flagsByte: number = 0;

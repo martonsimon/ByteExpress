@@ -82,7 +82,7 @@ export class RequestHandler{
     public inboundPacket(packet: Serializable){
         //Handle request
         if (packet instanceof RequestPacket){
-            a
+            
         }
 
         //Handle response
@@ -167,7 +167,7 @@ export class CallbackHandlerElement<K, V>{
 }
 
 export class Request{
-    public readonly sequence: number; //request ID for outbound
+    public readonly sequence: number; //request ID for outbound / inbound
     public readonly endpointUrl: string | undefined;
     public readonly endpointNumeric: number | undefined;
     public readonly expectResponse: boolean;
@@ -175,12 +175,13 @@ export class Request{
     public readonly payload: Serializable;
     public readonly packetManager: PacketManager;
     public readonly timeout: number;
+    public readonly outbound: boolean;
 
     public outboundPacket: RequestPacket | undefined;
     public sent: boolean;
     public completed: boolean;
 
-    constructor(packetManager: PacketManager, sequence: number, payload: Serializable, expectResponse: boolean, multipleResponse: boolean, timeout: number, endpointUrl?: string){
+    constructor(packetManager: PacketManager, sequence: number, payload: Serializable, expectResponse: boolean, multipleResponse: boolean, timeout: number, outbound: boolean = false, endpointUrl?: string){
         this.packetManager = packetManager;
         this.sequence = sequence;
         this.endpointUrl = endpointUrl;
@@ -188,9 +189,13 @@ export class Request{
         this.expectResponse = expectResponse;
         this.multipleResponse = multipleResponse;
         this.payload = payload;
-        this.sent = false;
+        this.outbound = outbound;
+        this.sent = outbound ? false : true;
         this.completed = false;
         this.timeout = timeout;
+
+        if (!outbound)
+            this.extractRequest(undef
     }
 
     /**
@@ -217,6 +222,9 @@ export class Request{
         this.outboundPacket = request;
 
         return request;
+    }
+    extractRequest(packet: RequestPacket){
+        this.endpointUrl = packet.endpoint_str;
     }
 }
 
