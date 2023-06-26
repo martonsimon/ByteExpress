@@ -226,7 +226,7 @@ export class NetworkConnection{
     }
     private onPacket(packet: Serializable){
         console.log("a packet arrived");
-        //console.log(packet.toJson());
+        console.log(packet.toJson());
 
         this.requestHandler.inboundPacket(packet);
     }

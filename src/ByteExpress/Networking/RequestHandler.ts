@@ -347,6 +347,7 @@ export interface iResponse{
 export class Response implements iResponse{
     public readonly endpointUrl: string | undefined;
     public readonly endpointNumeric: number | undefined;
+    public readonly requireResponse: boolean;
     public readonly multipleResponse: boolean;
     public readonly settings: RequestSettings;
     public readonly isOutbound: boolean;
@@ -361,6 +362,8 @@ export class Response implements iResponse{
     public closedConnection: boolean;
     public rejected: boolean;
     public timeout: NodeJS.Timeout | undefined;
+
+    //For single requests
     public outboundPromise: Promise<iRequestContext>; //deferred promise for outbound single responses
     public promiseResolveFn?: (value: iRequestContext) => void;
     public promiseRejectFn?: (value: iRequestContext) => void;
@@ -374,6 +377,7 @@ export class Response implements iResponse{
         this.isOutbound = isOutbound;
         this.context = context;
 
+        this.requireResponse = context.req.expectResponse;
         this.multipleResponse = context.req.multipleResponse;
         this.settings = context.req.settings;
         this.sequence = context.req.sequence;
@@ -389,6 +393,10 @@ export class Response implements iResponse{
         })
         if (!isOutbound)
             this.startTimeout();
+        if (!this.requireResponse){
+            this.promiseResolveFn!(this.context);
+            this.context.onResponseFinished();
+        }
     }
 
     public write(packet: Serializable){ this._write(packet, 200, !this.multipleResponse); }
@@ -396,6 +404,8 @@ export class Response implements iResponse{
     private _write(packet: Serializable | undefined, code: number, closeConnection: boolean){
         if (!this.isOutbound)
             throw new Error("Writing data to an inbound response object is not allowed");
+        if (!this.requireResponse)
+            throw new Error("Cannot write data if requireResponse is false");
         this.nthResponse++;
         this.code = code;
         this.closedConnection = closeConnection;
