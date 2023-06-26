@@ -7,8 +7,8 @@ export class ByteStream extends ByteStreamBase{
         super(buffer, initialBufferSize, maxBufferSize, bufferIncreaseStep);
     }
 
-    public write(array: Uint8Array): boolean { return super.write(array); }
-    public read(amount: number, copyArray: boolean = true): Uint8Array | undefined { return super.read(amount, copyArray); }
+    public write(array: Uint8Array, throwError: boolean = false): boolean { return super.write(array, throwError); }
+    public read(amount: number, copyArray: boolean = true, throwError: boolean = false): Uint8Array | undefined { return super.read(amount, copyArray, throwError); }
     public readRemaining(copyArray: boolean = true): Uint8Array { return super.readRemaining(); }
     public readAll(copyArray: boolean = true): Uint8Array { return super.readAll(); }
   

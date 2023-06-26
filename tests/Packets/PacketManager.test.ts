@@ -45,6 +45,8 @@ describe('Testing PacketManager class', () => {
 
     test('Get class by ID', () => {
         expect(packetManager.getClsById(1)).toBe(TestCls1);
+        expect(packetManager.getClsById(99)).toBe(undefined);
+        expect(() => packetManager.getClsById(99, true)).toThrow();
     });
     test('Get class by instance', () => {
         expect(packetManager.getClsByInstance(instance1)).toBe(TestCls1);

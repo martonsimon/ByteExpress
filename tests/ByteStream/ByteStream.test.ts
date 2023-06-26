@@ -28,11 +28,11 @@ describe('Testing ByteStream class', () => {
 
     test('create empty ByteStream and set buffer size', () => {
         let stream = new ByteStream();
-        stream.setBufferSize(1025); //bigger than default 1024
+        stream.setBufferSize(1025);
         expect(stream.getBufferSize()).toBe(1025);
         expect(stream.getBuffer().length).toBe(1025);
 
-        stream.setBufferSize(10000); //should not happen as limit is reached
+        expect(() => stream.setBufferSize(10000)).toThrow(); //should not happen as limit is reached
         expect(stream.getBufferSize()).toBe(1025);
         expect(stream.getBuffer().length).toBe(1025);
     });
@@ -74,6 +74,7 @@ describe('Testing ByteStream class', () => {
         expect(stream.getBytesWritten()).toBe(8);
 
         let read1 = stream.read(2);
+        console.log(read1);
         expect(read1).toEqual(testArr2.slice(0, 2));
         expect(stream.getHead()).toBe(2);
         expect(stream.getBytesWritten()).toBe(8);
@@ -89,12 +90,12 @@ describe('Testing ByteStream class', () => {
         expect(stream.getHead()).toBe(8);
         expect(stream.getBytesWritten()).toBe(8);
 
-        //reading if less data is available
+        //reading if less data is available (NOTE: the new version throws or returns undefined anyway)
         stream.write(testArr1);
         stream.setHead(8);
         let read4 = stream.read(5);
-        expect(read4).toEqual(testArr1);
-        expect(stream.getHead()).toBe(12);
+        expect(read4).toEqual(undefined); //used to return the testArr1 (the remaining)
+        expect(stream.getHead()).toBe(8); //used to be 12
         expect(stream.getBytesWritten()).toBe(12);
     });
 

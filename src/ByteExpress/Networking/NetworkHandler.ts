@@ -2,10 +2,11 @@ import { TransferWrapper } from "../Packets/NetworkingPackets/TransferWrapper";
 import { PacketManager } from "../Packets/PacketManager";
 import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
-import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext } from "./RequestHandler";
+import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, iRequestContext } from "./RequestHandler";
 
 //Callback type for outbound data
 export type Callback = (id: number, data: Uint8Array, ctx?: CallbackContext) => void;
+//For debug purposes
 export type CallbackContext = {
     original_packet: TransferWrapper,
 
@@ -30,6 +31,9 @@ type NetworkSettings = {
  * stream methods.
  */
 export class NetworkHandler{
+    //public props
+    public get packetManager(): PacketManager { return this._packetManager; }
+
     //Settings for inbound
     private maxPacketSize: number;
     private connectionSendRate: number;
@@ -38,29 +42,32 @@ export class NetworkHandler{
     //Settings for outbound
     private outboundCallback: Callback;
     
-    //common
+    //Settings common
     private requestQueueSize: number;
     private streamQueueSize: number;
 
-    //
-    private readonly connections: Array<NetworkConnection> = new Array<NetworkConnection>();
-    private readonly packetManager: PacketManager;
+    //Private vars
+    private readonly connections: Array<NetworkConnection> = new Array<NetworkConnection>(); //list of active connection
+    private readonly _packetManager: PacketManager; //a packet manager instance passed along the entire execution of the network instance
     private readonly encoder = new TextEncoder();
     private readonly decoder = new TextDecoder();
 
 
     constructor(
         outboundCallback: Callback,
-        networkSettings?: NetworkSettings,
+        networkSettings?: NetworkSettings, //can pass optional settings
     ){
         this.outboundCallback = outboundCallback;
+
+        //set default settings values or whats defined
         this.maxPacketSize = networkSettings?.maxPacketSize ?? 255;
         this.connectionSendRate = networkSettings?.connectionSendRate ?? 0;
         this.connectionPacketsPerAck = networkSettings?.connectionPacketsPerAck ?? 4;
         this.requestQueueSize = networkSettings?.requestQueueSize ?? 128;
         this.streamQueueSize = networkSettings?.streamQueueSize ?? 128;
 
-        this.packetManager = new PacketManager();
+        //init internal variables
+        this._packetManager = new PacketManager();
     }
 
     /**
@@ -108,16 +115,18 @@ export class NetworkHandler{
 
     }
 
-    public debugSendRaw(id: number, packet: Serializable){
-        let connection = this.connections.find(e => e.id == id);
-        connection!.sendPacket(packet);
-    }
-    public request(connectionId: number, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<RequestContext>{
+    public request(connectionId: number, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.request(packet, expectResponse, endpointUrl);
     }
     public onRequest(connectionId: number, endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.onRequest(endpoint, callback);
+    }
+
+
+    public debugSendRaw(id: number, packet: Serializable){
+        let connection = this.connections.find(e => e.id == id);
+        connection!.sendPacket(packet);
     }
 }

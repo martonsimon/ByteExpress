@@ -7,7 +7,7 @@ export class ByteStreamWriter extends ByteStreamBase{
         super(buffer, initialBufferSize, maxBufferSize, bufferIncreaseStep);
     }
 
-    public write(array: Uint8Array): boolean { return super.write(array); }
+    public write(array: Uint8Array, throwError: boolean = false): boolean { return super.write(array, throwError); }
     public toStream(): ByteStream {
         let stream = new ByteStream();
         stream.write(this.readAll()!);

@@ -102,7 +102,8 @@ let handler = networkServer.onRequest(0, TestPacket1, ctx => {
 
 console.log("[client]: sennding request");
 networkClient.request(0, testPacket1, true).then(ctx => {
-    console.log("[client]: resolved request ");
+    console.log("[client]: resolved request..");
+    console.log(ctx.res.code);
     console.log(ctx.res.payload!.toJson());
 }).catch(ctx => {
     console.log("[client] request errored");

@@ -8,7 +8,7 @@ export class ByteStreamReader extends ByteStreamBase{
         this.setHead(0);
     }
 
-    public read(amount: number, copyArray: boolean = true): Uint8Array | undefined { return super.read(amount, copyArray); }
+    public read(amount: number, copyArray: boolean = true, throwError: boolean = false): Uint8Array | undefined { return super.read(amount, copyArray, throwError); }
     public readAll(copyArray: boolean = true): Uint8Array { return super.readAll(); }
     public readRemaining(copyArray: boolean = true): Uint8Array { return super.readRemaining(); }
     public getRemainingAmount(): number { return super.getRemainingAmount(); }

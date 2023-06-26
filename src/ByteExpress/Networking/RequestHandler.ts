@@ -5,27 +5,34 @@ import { Serializable } from "../Serialization/Serializable";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { Payload } from "../Packets/NetworkingPackets/Payload";
 import { clearScreenDown } from "readline";
+import { NullPacket } from "../Packets/NetworkingPackets/NullPacket";
+import { Subject, Observable } from 'rxjs';
 
-export type RequestSettings = {
+export type HandlerSettings = { //Optional settings for requests
     timeout: number, //timeout in ms
 };
-export type CallbackHandlerKey = (number | string);
-export type CallbackHandlerCb = ((ctx: RequestContext) => void);
+export type CallbackHandlerKey = (number | string); //key used when sending and receiving requests
+export type CallbackHandlerCb = ((ctx: RequestContext) => void); //type to be returned when a request / response arrives
+/**
+ * Request Handler keeps track of inbound
+ * and outbound requests and manages the 
+ * process of sending and receiving requests.
+ */
 export class RequestHandler{
     private readonly packetManager: PacketManager;
     private readonly connection: NetworkConnection;
-    private readonly timeout: number;
 
     private nextSequence: number; //the ID used for the next outbound request
     private outboundRequests: Array<RequestContext>;
     private inboundRequests: Array<RequestContext>;
-    //private requestHandlers: CallbackHandler<(number | string), ((ctx: RequestContext) => void)>;
     private requestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>;
+
+    private readonly timeout: number;
 
     constructor(
         packetManager: PacketManager,
-        networkConnection: NetworkConnection,
-        requestSettings?: RequestSettings
+        networkConnection: NetworkConnection, //the connection where this handler is used
+        requestSettings?: HandlerSettings //optional settings
     )
     {
         this.packetManager = packetManager;
@@ -39,6 +46,8 @@ export class RequestHandler{
         this.timeout = requestSettings?.timeout ?? 10_000;
     }
 
+
+    //METHODS FOR OUTBOUND REQUESTS
     public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string){
         //Get the next sequence and remove if there is an existing one
         let sequence = this.nextSequence;
@@ -47,34 +56,44 @@ export class RequestHandler{
 
         //Create request and context objects
         let req = new Request(
-          this.packetManager,
-          sequence,
-          packet,
-          expectResponse,
-          false,
-          this.timeout,
-          true,
-          endpointUrl,
+            this.packetManager,
+            true,
+            { timeout: this.timeout },
+            {
+                endpointUrl: endpointUrl ? endpointUrl : undefined,
+                endpointNumeric: endpointUrl ? undefined : this.packetManager.getIdByInstance(packet, true),
+                requireResponse: expectResponse,
+                multipleResponse: false,
+                sequence: sequence,
+                payload: packet,
+            },
+            undefined
         );
         let ctx = new RequestContext(
             this.connection,
             this.packetManager,
             req,
-            this.timeout,
-            true,
+            { timeout: this.timeout }
         );
-
 
 
         //Add to array
         this.outboundRequests.push(ctx);
 
-        //Start timeout
-        ctx.startTimeout();
-
         //Return promise and flush packet
-        this.flushRequest(req.generatePacket(true));
-        return ctx.promise;
+        this.flushRequest(req.generatePacket());
+        return ctx.res.outboundPromise;
+    }
+    private flushRequest(packet: RequestPacket){
+        this.connection.sendPacket(packet);
+    }
+
+    //METHODS FOR INBOUND REQUESTS
+    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        let endpointVal: number | string | undefined = Serializable.prototype.isPrototypeOf((endpoint as any).prototype) ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
+        if (!endpointVal)
+            throw new Error("Packet must be added to packet manager");
+        return this.requestHandlers.addCallback(endpointVal, callback);
     }
     private inboundRequest(packet: RequestPacket){
         let sequence = packet.request_id;
@@ -82,23 +101,18 @@ export class RequestHandler{
 
         //Create request and context objects
         let req = new Request(
-          this.packetManager,
-          sequence,
-          packet,
-          false,
-          false,
-          this.timeout,
-          false,
-          undefined,
+            this.packetManager,
+            false,
+            {timeout: this.timeout},
+            undefined,
+            packet,
         );
         let ctx = new RequestContext(
             this.connection,
             this.packetManager,
             req,
-            this.timeout,
-            false
+            {timeout: this.timeout},
         );
-
 
         //Add to array
         this.inboundRequests.push(ctx);
@@ -111,14 +125,8 @@ export class RequestHandler{
         }
     }
 
-    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        let endpointVal: number | string | undefined = Serializable.prototype.isPrototypeOf((endpoint as any).prototype) ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
-        if (!endpointVal)
-            throw new Error("Packet must be added to packet manager");
-        return this.requestHandlers.addCallback(endpointVal, callback);
-    }
 
-
+    //METHODS FOR COMMON
     public inboundPacket(packet: Serializable){
         //Handle request
         if (packet instanceof RequestPacket){
@@ -136,7 +144,6 @@ export class RequestHandler{
         //Clear up finished requests
         this.clearCompleted();
     }
-
     private clearCompleted(){
         for (let i = this.outboundRequests.length - 1; i >= 0; i--){
             let req = this.outboundRequests[i];
@@ -144,24 +151,19 @@ export class RequestHandler{
                 this.outboundRequests.splice(i, 1);
         }
     }
-
-    private flushRequest(packet: RequestPacket){
-        this.connection.sendPacket(packet);
-    }
-
     private abortRequest(requestId: number, outbound: boolean = true){
         if (outbound){
             let reqIndex = this.outboundRequests.findIndex(x => x.req.sequence);
             let req = this.outboundRequests[reqIndex];
             if (req){
-                req.abort();
+                req.res.abort();
                 this.outboundRequests.splice(reqIndex, 1);
             }
         } else{
             let reqIndex = this.inboundRequests.findIndex(x => x.req.sequence);
             let req = this.inboundRequests[reqIndex];
             if (req){
-                req.abort();
+                req.res.abort();
                 this.inboundRequests.splice(reqIndex, 1);
             }
         }
@@ -213,44 +215,85 @@ export class CallbackHandlerElement<K, V>{
     public deleteCallback(): void { this.handler.deleteCallback(this); }
 }
 
-export class Request{
-    public readonly sequence: number; //request ID for outbound / inbound
+export interface iRequest{
+    readonly endpointUrl: string | undefined;
+    readonly endpointNumeric: number | undefined;
+    readonly expectResponse: boolean;
+    readonly multipleResponse: boolean;
+    readonly payload: Serializable;
+    readonly settings: RequestSettings;
+    readonly isOutbound: boolean;
+}
+export type RequestSettings = {
+    timeout: number,
+};
+export type RequestPacketInformation = {
+    sequence: number,
+    requireResponse: boolean,
+    multipleResponse: boolean,
+    endpointUrl: string | undefined;
+    endpointNumeric: number | undefined;
+    payload: Serializable,
+};
+export class Request implements iRequest{
+    //Interface members
     public readonly endpointUrl: string | undefined;
     public readonly endpointNumeric: number | undefined;
     public readonly expectResponse: boolean;
     public readonly multipleResponse: boolean;
     public readonly payload: Serializable;
+    public readonly settings: RequestSettings;
+    public readonly isOutbound: boolean;
+
+    //Internal members
+    public readonly sequence: number; //request ID for outbound / inbound
     public readonly packetManager: PacketManager;
-    public readonly timeout: number;
-    public readonly outbound: boolean;
+    public networkPacket: RequestPacket | undefined; //stores the serialized packet sent over the network
 
-    public outboundPacket: RequestPacket | undefined;
-    public sent: boolean;
-    public completed: boolean;
+    constructor(
+        packetManager: PacketManager,
+        isOutbound: boolean,
+        settings: RequestSettings,
 
-    constructor(packetManager: PacketManager, sequence: number, payload: Serializable, expectResponse: boolean, multipleResponse: boolean, timeout: number, outbound: boolean = false, endpointUrl?: string){
+        outboundPacket: RequestPacketInformation | undefined, //for creating network packet for outbound
+        inboundPacket: RequestPacket | undefined, //If the class is inbound
+    ){
         this.packetManager = packetManager;
-        this.sequence = sequence;
-        this.endpointUrl = endpointUrl;
-        this.endpointNumeric = this.packetManager.getIdByInstance(payload);
-        this.expectResponse = expectResponse;
-        this.multipleResponse = multipleResponse;
-        this.payload = payload;
-        this.outbound = outbound;
-        this.sent = outbound ? false : true;
-        this.completed = false;
-        this.timeout = timeout;
+        this.isOutbound = isOutbound;
+        this.settings = settings;
 
-        if (!outbound){
-            let req = payload as RequestPacket;
-            this.sequence = req.request_id;
-            this.endpointUrl = req.endpoint_str;
-            this.endpointNumeric = req.endpoint_id;
+        //Because of type checking cannot detect when extracting the packet/information
+        this.sequence = 0;
+        this.expectResponse = false;
+        this.multipleResponse = false;
+        this.payload = new NullPacket();
+        
+        //Extract inbound packet if inbound
+        if (!isOutbound && inboundPacket){
+            let req = inboundPacket;
+            this.networkPacket = req;
+
             this.expectResponse = req.flags.require_response;
             this.multipleResponse = req.flags.multiple_response;
-
+            this.sequence = req.request_id;
+            this.endpointUrl = req.flags.endpoint_is_string ? req.endpoint_str : undefined;
+            this.endpointNumeric = req.flags.endpoint_is_string ? undefined : req.endpoint_id;
             this.payload = req.payload.toPacket(packetManager);
-        }
+        } else if (!isOutbound)
+            throw new Error("inboundPacket must be defined for inbound Requests");
+
+        //Extract outbound packet information from settings
+        if (isOutbound && outboundPacket){
+            let info = outboundPacket;
+            
+            this.expectResponse = info.requireResponse;
+            this.multipleResponse = info.multipleResponse;
+            this.sequence = info.sequence;
+            this.endpointUrl = info.endpointUrl;
+            this.endpointNumeric = info.endpointNumeric;
+            this.payload = info.payload;
+        } else if (isOutbound)
+            throw new Error("outboundInformation must be defined for outbound Requests");
     }
 
     /**
@@ -258,13 +301,8 @@ export class Request{
      * over the network, including all the necessary
      * information.
      */
-    generatePacket(markAsSent: boolean): RequestPacket{
-        this.sent = markAsSent;
-        if (!this.expectResponse)
-            this.completed = true;
-        let packetId = this.packetManager.getIdByInstance(this.payload);
-        if (!packetId)
-            throw new Error("Packet is not added");
+    generatePacket(): RequestPacket{
+        let packetId = this.packetManager.getIdByInstance(this.payload, true);
 
         let request = new RequestPacket(this.packetManager);
         request.flags.endpoint_is_string = !!this.endpointUrl;
@@ -274,46 +312,93 @@ export class Request{
         request.endpoint_id = packetId ? packetId : 0;
         request.request_id = this.sequence;
         request.setPayload(this.payload);
-        this.outboundPacket = request;
+        this.networkPacket = request;
 
         return request;
     }
 }
 
-export class Response{
-    public readonly sequence: number;
+export interface iResponse{
+    readonly endpointUrl: string | undefined;
+    readonly endpointNumeric: number | undefined;
+    readonly multipleResponse: boolean;
+    readonly settings: RequestSettings;
+    readonly isOutbound: boolean;
+    payload: Serializable;
+    code: number;
+
+    //For sending response (outbound)
+    write(packet: Serializable): void;
+    end(code: number): void;
+
+    /**
+     * when sending response:
+     * accepts packet
+     * push messages to connection
+     * mark as completed if
+     * 
+     * when receiving response:
+     * get the packet
+     * call the callback
+     * mark as compelted if
+     * stop timeouttimer
+     */
+}
+export class Response implements iResponse{
+    public readonly endpointUrl: string | undefined;
+    public readonly endpointNumeric: number | undefined;
     public readonly multipleResponse: boolean;
+    public readonly settings: RequestSettings;
+    public readonly isOutbound: boolean;
+    public payload: Serializable;
+    public code: number;
+    
+    public readonly sequence: number;
     public readonly packetManager: PacketManager;
-    public readonly outbound: boolean;
     public readonly context: RequestContext;
 
-    public payload?: Serializable;
-    public completed: boolean;
+    public nthResponse: number;
+    public closedConnection: boolean;
+    public rejected: boolean;
+    public timeout: NodeJS.Timeout | undefined;
+    public outboundPromise: Promise<iRequestContext>; //deferred promise for outbound single responses
+    public promiseResolveFn?: (value: iRequestContext) => void;
+    public promiseRejectFn?: (value: iRequestContext) => void;
 
     constructor(
         packetManager: PacketManager,
-        sequence: number,
-        multipleResponse: boolean,
-        outbound: boolean,
+        isOutbound: boolean,
         context: RequestContext,
     ){
         this.packetManager = packetManager;
-        this.sequence = sequence;
-        this.multipleResponse = multipleResponse;
-        this.outbound = outbound;
+        this.isOutbound = isOutbound;
         this.context = context;
 
-        this.completed = false;
+        this.multipleResponse = context.req.multipleResponse;
+        this.settings = context.req.settings;
+        this.sequence = context.req.sequence;
+        this.payload = new NullPacket();
+        this.code = 0;
+
+        this.nthResponse = 0;
+        this.closedConnection = false;
+        this.rejected = false;
+        this.outboundPromise = new Promise<iRequestContext>((resolve, reject) => {
+            this.promiseResolveFn = resolve;
+            this.promiseRejectFn = reject;
+        })
+        if (!isOutbound)
+            this.startTimeout();
     }
 
-    public write(packet: Serializable){
-        this._write(packet, 200, !this.multipleResponse);
-    }
-    public end(code: number){
-        this._write(undefined, code, true);
-    }
+    public write(packet: Serializable){ this._write(packet, 200, !this.multipleResponse); }
+    public end(code: number){ this._write(undefined, code, true); }
     private _write(packet: Serializable | undefined, code: number, closeConnection: boolean){
-        this.completed = closeConnection;
+        if (!this.isOutbound)
+            throw new Error("Writing data to an inbound response object is not allowed");
+        this.nthResponse++;
+        this.code = code;
+        this.closedConnection = closeConnection;
         let payload = new Payload();
         payload.fromPacket(this.packetManager, packet);
 
@@ -323,102 +408,96 @@ export class Response{
         res.code = code;
         res.payload = payload;
 
-        this.context.outboundResponse(res, closeConnection);
+        this.context.connection.sendPacket(res);
+        if (this.closedConnection) { this.context.onResponseFinished(); }
+    }
+
+    public receive(packet: ResponsePacket){
+        if (this.isOutbound)
+            throw new Error("Cannot receive data when using an outbound response");
+        this.nthResponse++;
+
+        //Get payload
+        this.closedConnection = packet.flags.close_connection;
+        this.code = packet.code;
+        this.payload = packet.payload.toPacket(this.packetManager);
+
+        //Timers
+        if (this.closedConnection)
+            this.stopTimeout();
+        else
+            this.startTimeout(true);
+
+        //Emit the message
+        if (!this.multipleResponse){ //single response
+            this.promiseResolveFn!(this.context);
+            this.context.onResponseFinished();
+        } else{
+            throw new Error("not implemented");
+        }
+    }
+
+    public startTimeout(restart: boolean = false){
+        if (restart)
+            this.stopTimeout();
+        if (!this.isOutbound && !this.timeout){
+            this.timeout = setTimeout(() => {
+                this.abort();
+            }, this.settings.timeout);
+        }
+    }
+    public stopTimeout(){
+        if (this.timeout)
+            clearTimeout(this.timeout);
+        this.timeout = undefined;
+    }
+    public abort(){
+        this.stopTimeout();
+        if (!this.multipleResponse)
+            this.promiseRejectFn!(this.context);
+        else
+            throw new Error("not implemented");
+        
+        this.closedConnection = true;
+        this.rejected = true;
+
+        this.context.onResponseAborted();
     }
 }
 
-export class RequestContext{
-    public readonly connectionId: number;
+export interface iRequestContext{
+    readonly req: iRequest;
+    readonly res: iResponse;
+}
+export class RequestContext implements iRequestContext{
     public readonly connection: NetworkConnection;
-    public readonly endpointStr: string | undefined;
-    public readonly endpointNumeric;
     public readonly packetManager: PacketManager;
-    public readonly outbound: boolean;
-
     public readonly req: Request;
     public readonly res: Response;
-    private timeoutLength: number;
-    private timeout: NodeJS.Timeout | undefined;
-
-    //for single respones
-    public readonly promise: Promise<RequestContext>;
-    private promiseResolve?: (value: RequestContext) => void;
-    private promiseReject?: (reason: RequestContext) => void;
     public completed: boolean;
-    public rejected: boolean;
+    public settings: RequestSettings;
 
     constructor(
         connection: NetworkConnection,
         packetManager: PacketManager,
         request: Request,
-        timeout: number,
-        outbound: boolean,
+        settings: RequestSettings,
     ){
-        this.connectionId = connection.id;
         this.connection = connection;
-        this.endpointStr = request.endpointUrl;
-        this.endpointNumeric = request.endpointNumeric;
         this.packetManager = packetManager;
-        this.timeoutLength = timeout;
-        this.outbound = outbound;
-
+        this.settings = settings;
         this.req = request;
+        this.completed = false;
+
         this.res = new Response(
             packetManager,
-            request.sequence,
-            request.multipleResponse,
-            outbound,
+            !(this.req.isOutbound),
             this,
         );
-
-        this.promise = new Promise<RequestContext>((resolve, reject) => {
-            this.promiseResolve = resolve;
-            this.promiseReject = reject;
-        });
-        this.completed = false;
-        this.rejected = false;
     }
 
-    public abort(){
-        this.stopTimeout();
-        this.completed = true;
-        this.rejected = true;
-        this.promiseReject!(this);
-    }
-    public resolve(){
-        this.stopTimeout();
-        this.completed = true;
-        this.rejected = false;
-        this.promiseResolve!(this);
-    }
+    public onResponseAborted(){ this.completed = true; }
+    public onResponseFinished(){ this.completed = true; }
 
-    public startTimeout(){
-        this.stopTimeout();
-        this.timeout = setTimeout(() => {
-            this.timeout = undefined;
-            this.abort();
-        }, this.timeoutLength);
-    }
-    public stopTimeout(){
-        if (this.timeout){
-            clearTimeout(this.timeout);
-            this.timeout = undefined;
-        }
-    }
-
-    public inboundResponse(packet: ResponsePacket){
-        this.res.payload = packet.payload.toPacket(this.packetManager);
-
-        //Handle a single response packet
-        if (!this.req.multipleResponse){
-            this.resolve();
-        }
-    }
-
-    public outboundResponse(packet: ResponsePacket, closeConnection: boolean){
-        if (closeConnection){
-            this.completed = true;
-        }
-        this.connection.sendPacket(packet);
-    }
+    public inboundResponse(packet: ResponsePacket){ this.res.receive(packet); }
 }

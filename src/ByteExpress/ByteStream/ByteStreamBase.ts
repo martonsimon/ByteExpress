@@ -19,7 +19,7 @@ export class ByteStreamBase {
         this.bytesWritten_ = 0;
         this.buffer_ = new Uint8Array(this.bufferSize_);
         if (buffer)
-            this.write(buffer);
+            this.write(buffer, false);
     }
   
     /**
@@ -32,7 +32,7 @@ export class ByteStreamBase {
      * @param throwError - Throws an error instead of returning
      * @returns 
      */
-    protected write(array: Uint8Array, throwError: boolean = false): boolean {
+    protected write(array: Uint8Array, throwError: boolean): boolean {
         const size = array.length;
 
         //if array have more data than available
@@ -69,15 +69,15 @@ export class ByteStreamBase {
      * @param throwError - Throws an error instead of returning undefined
      * @returns - Uint8Array for the amount or undefined in case of error
      */
-    protected read(amount: number, copyArray: boolean = true, throwError: boolean = false): Uint8Array | undefined {
+    protected read(amount: number, copyArray: boolean = true, throwError: boolean): Uint8Array | undefined {
         //Make sure to do not read more data than is available to read
         //If the head have been moved forward without writing data, then there is nothing left to read
         let newAmount = Math.min(amount, this.bytesWritten_ - this.head_);
   
         //return undefined if there is not enough data to read or throw an error
-        if (newAmount != newAmount && throwError)
+        if ((newAmount != newAmount || newAmount <= 0) && throwError)
             throw new NotEnoughData();
-        if (newAmount != newAmount)
+        if (newAmount <= 0 || newAmount != amount)
             return undefined;
 
         //Move head and return buffer
@@ -89,7 +89,7 @@ export class ByteStreamBase {
             return this.buffer_.subarray(startIndex, startIndex + newAmount);
     }
     protected readRemaining(copyArray: boolean = true): Uint8Array {
-        let data = this.read(this.getRemainingAmount(), copyArray);
+        let data = this.read(this.getRemainingAmount(), copyArray, false);
         if (data)
             return data;
         else

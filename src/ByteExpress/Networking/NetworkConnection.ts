@@ -5,7 +5,7 @@ import { PacketManager } from "../Packets/PacketManager";
 import { ByteStream } from "../ByteStream/ByteStream";
 import { ByteStreamWriter } from "../ByteStream/ByteStreamWriter";
 import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
-import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler } from "./RequestHandler";
+import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler, iRequestContext } from "./RequestHandler";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 
@@ -79,6 +79,7 @@ export class NetworkConnection{
         this.checkPayloadRestrictions();
     }
 
+    //METHODS FOR OUTBOUND
     /**
      * Adds a packet to the outbound packet queue and split
      * into smaller chunks as necessary
@@ -131,7 +132,6 @@ export class NetworkConnection{
          this.flushOutboundQueue(flush);
          return true;
     }
-
     /**
      * Queues a given transfer wrapper
      * @param packet Transfer object
@@ -142,7 +142,6 @@ export class NetworkConnection{
         else
             this.outboundQueue.push(packet);
     }
-
     private flushOutboundQueue(flushImmediately: boolean = false){
         if (this.sendTimeout && !flushImmediately)
             return;
@@ -178,6 +177,8 @@ export class NetworkConnection{
         }
     }
 
+
+    //METHODS FOR INBOUND
     public inboundData(data: Uint8Array): void{
         this.buffer.write(data);
         this._processBuffer();
@@ -257,6 +258,8 @@ export class NetworkConnection{
             throw new Error("Invalid packet. Chunk ID, sequence and flags are incorrect");
     }
 
+
+    //HELPERS
     /**
      * Determines the maximum allowed payload length
      * @param chunked
@@ -309,6 +312,8 @@ export class NetworkConnection{
 
         return packet;
     }
+
+    //ACK RELATIED METHODS
     private handleAck(packet: TransferWrapper){
         //This method handles the inbound requests
         //and resets the number of packets sent
@@ -354,12 +359,11 @@ export class NetworkConnection{
      */
     private incrementSequence(){ this.nextSequence = (this.nextSequence + 1) % 255; }
     private waitingForAck(): boolean{ return this.packetsDeltaAck >= this.packetsPerAck; }
-    private waitingForDelay(): boolean{
-        return (Date.now() - this.lastSentAt) > this.sendRate;
-        
-    }
+    private waitingForDelay(): boolean{ return (Date.now() - this.lastSentAt) > this.sendRate; }
 
-    public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<RequestContext>{
+
+    //PUBLIC METHODS
+    public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
         return this.requestHandler.request(packet, expectResponse, endpointUrl);
     }
     public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{

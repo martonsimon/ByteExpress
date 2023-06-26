@@ -53,10 +53,8 @@ export class Payload extends Serializable{
      * @param packetManager Packet Manager for getting the class based on the ID
      */
     public toPacket(packetManager: PacketManager): Serializable{
-        let cls = packetManager.getClsById(this.packetId);
-        if (!cls)
-            throw new Error(`Packet with ID ${this.packetId} doesn't exists.`);
-        let packet = new cls();
+        let cls = packetManager.getClsById(this.packetId, true);
+        let packet = new cls!();
         packet.fromBytes(new ByteStreamReader(this.payload));
 
         return packet;
