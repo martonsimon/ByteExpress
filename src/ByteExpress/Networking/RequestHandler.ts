@@ -4,9 +4,8 @@ import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 import { Serializable } from "../Serialization/Serializable";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { Payload } from "../Packets/NetworkingPackets/Payload";
-import { clearScreenDown } from "readline";
 import { NullPacket } from "../Packets/NetworkingPackets/NullPacket";
-import { Subject, Observable } from 'rxjs';
+import { Subject, Observable, of, pipe, from, Observer } from 'rxjs';
 
 export type HandlerSettings = { //Optional settings for requests
     timeout: number, //timeout in ms
@@ -50,9 +49,7 @@ export class RequestHandler{
     //METHODS FOR OUTBOUND REQUESTS
     public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string){
         //Get the next sequence and remove if there is an existing one
-        let sequence = this.nextSequence;
-        this.nextSequence = (this.nextSequence + 1) % 65535;
-        this.abortRequest(sequence);
+        let sequence = this.incrementSequence();
 
         //Create request and context objects
         let req = new Request(
@@ -69,12 +66,7 @@ export class RequestHandler{
             },
             undefined
         );
-        let ctx = new RequestContext(
-            this.connection,
-            this.packetManager,
-            req,
-            { timeout: this.timeout }
-        );
+        let ctx = new RequestContext( this.connection, this.packetManager, req, { timeout: this.timeout } );
 
 
         //Add to array
@@ -83,6 +75,38 @@ export class RequestHandler{
         //Return promise and flush packet
         this.flushRequest(req.generatePacket());
         return ctx.res.outboundPromise;
+    }
+    public eventRequest(endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
+        //Get the next sequence and remove if there is an existing one
+        let sequence = this.incrementSequence();
+
+        //Create request and context objects
+        let req = new Request(
+            this.packetManager,
+            true,
+            { timeout: this.timeout },
+            {
+                endpointUrl: endpointUrl,
+                endpointNumeric: undefined,
+                requireResponse: true,
+                multipleResponse: true,
+                sequence: sequence,
+                payload: payload ? payload : new NullPacket(),
+            },
+            undefined
+        );
+        let ctx = new RequestContext( this.connection, this.packetManager, req, { timeout: this.timeout } );
+
+        //Add to array
+        this.outboundRequests.push(ctx);
+
+        //Return observable and flush
+        //Note: flush after the the observable is subscribed
+        //      as it is completed immediately when locally testing
+        //      and the emitted values are not stored (not a replaysubject)
+        return ctx.res.getObservable(() => {
+            this.flushRequest(req.generatePacket()); //callback
+        });
     }
     private flushRequest(packet: RequestPacket){
         this.connection.sendPacket(packet);
@@ -94,6 +118,9 @@ export class RequestHandler{
         if (!endpointVal)
             throw new Error("Packet must be added to packet manager");
         return this.requestHandlers.addCallback(endpointVal, callback);
+    }
+    public onEvent(endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandlers.addCallback(endpoint, callback);
     }
     private inboundRequest(packet: RequestPacket){
         let sequence = packet.request_id;
@@ -167,6 +194,19 @@ export class RequestHandler{
                 this.inboundRequests.splice(reqIndex, 1);
             }
         }
+    }
+    /**
+     * Increments the nextSequence counter, aborts
+     * stuck/pending requests if any, then
+     * returns the nextSequence that can be used
+     * @returns Next sequence ID to use
+     */
+    private incrementSequence(): number{
+        let sequence = this.nextSequence;
+        this.nextSequence = (this.nextSequence + 1) % 65535;
+        this.abortRequest(sequence);
+
+        return sequence;
     }
 }
 
@@ -330,19 +370,6 @@ export interface iResponse{
     //For sending response (outbound)
     write(packet: Serializable): void;
     end(code: number): void;
-
-    /**
-     * when sending response:
-     * accepts packet
-     * push messages to connection
-     * mark as completed if
-     * 
-     * when receiving response:
-     * get the packet
-     * call the callback
-     * mark as compelted if
-     * stop timeouttimer
-     */
 }
 export class Response implements iResponse{
     public readonly endpointUrl: string | undefined;
@@ -368,6 +395,9 @@ export class Response implements iResponse{
     public promiseResolveFn?: (value: iRequestContext) => void;
     public promiseRejectFn?: (value: iRequestContext) => void;
 
+    //For event like requests (multiple respones)
+    public outboundSubject: Subject<iRequestContext>;
+
     constructor(
         packetManager: PacketManager,
         isOutbound: boolean,
@@ -390,7 +420,8 @@ export class Response implements iResponse{
         this.outboundPromise = new Promise<iRequestContext>((resolve, reject) => {
             this.promiseResolveFn = resolve;
             this.promiseRejectFn = reject;
-        })
+        });
+        this.outboundSubject = new Subject<iRequestContext>();
         if (!isOutbound)
             this.startTimeout();
         if (!this.requireResponse){
@@ -399,30 +430,51 @@ export class Response implements iResponse{
         }
     }
 
+    /**
+     * Writes a packet to the connection and sends it. Note
+     * that when the write method is used, the receiver must
+     * cache the entire message, so this is not applicable for
+     * large responses. Instead, read the docs for large responses
+     * @param packet 
+     */
     public write(packet: Serializable){ this._write(packet, 200, !this.multipleResponse); }
+    /**
+     * Terminates the requests and closes the connection
+     * @param code 
+     */
     public end(code: number){ this._write(undefined, code, true); }
     private _write(packet: Serializable | undefined, code: number, closeConnection: boolean){
+        //Checks
         if (!this.isOutbound)
             throw new Error("Writing data to an inbound response object is not allowed");
         if (!this.requireResponse)
             throw new Error("Cannot write data if requireResponse is false");
+
+        //Prepare data
         this.nthResponse++;
         this.code = code;
         this.closedConnection = closeConnection;
         let payload = new Payload();
         payload.fromPacket(this.packetManager, packet);
 
+        //Create the response packet
         let res = new ResponsePacket(this.packetManager);
         res.flags.close_connection = closeConnection;
         res.request_id = this.sequence;
         res.code = code;
         res.payload = payload;
 
+        //Send the packet and mark the request as completed if necessary
         this.context.connection.sendPacket(res);
         if (this.closedConnection) { this.context.onResponseFinished(); }
     }
 
+    /**
+     * Call the receive the process incoming packets
+     * @param packet 
+     */
     public receive(packet: ResponsePacket){
+        //Checks
         if (this.isOutbound)
             throw new Error("Cannot receive data when using an outbound response");
         this.nthResponse++;
@@ -433,6 +485,7 @@ export class Response implements iResponse{
         this.payload = packet.payload.toPacket(this.packetManager);
 
         //Timers
+        //Note: Timers for event are disabled
         if (this.closedConnection)
             this.stopTimeout();
         else
@@ -442,12 +495,18 @@ export class Response implements iResponse{
         if (!this.multipleResponse){ //single response
             this.promiseResolveFn!(this.context);
             this.context.onResponseFinished();
-        } else{
-            throw new Error("not implemented");
+        } else{ //multiple response
+            if (this.closedConnection) { //do not emit data for the close connection packet
+                this.outboundSubject.complete();
+                this.context.onResponseFinished();
+            }else
+                this.outboundSubject.next(this.context);
         }
     }
 
     public startTimeout(restart: boolean = false){
+        if (this.multipleResponse) //ignore it for event like requests
+            return;
         if (restart)
             this.stopTimeout();
         if (!this.isOutbound && !this.timeout){
@@ -461,6 +520,10 @@ export class Response implements iResponse{
             clearTimeout(this.timeout);
         this.timeout = undefined;
     }
+    /**
+     * Aborts the request, notifies the subscriber
+     * and marks the request context as compelted
+     */
     public abort(){
         this.stopTimeout();
         if (!this.multipleResponse)
@@ -472,6 +535,35 @@ export class Response implements iResponse{
         this.rejected = true;
 
         this.context.onResponseAborted();
+    }
+    /**
+     * Returns an observable and accepts a callback function to be
+     * called after it is subscribed to. Note: used for testing internally,
+     * when the flushed packets would get immediately processed when the 
+     * consumer haven't subscribed yet.
+     * @param onSubscribedCb Callback for flushing the packet to the connection
+     * @returns 
+     */
+    public getObservable(onSubscribedCb: () => any): Observable<iRequestContext>{
+        let observable = this.outboundSubject.asObservable();
+        return this.subscriptionCallback(observable, onSubscribedCb);
+    }
+    /**
+     * Takes an observable and a callback, and modifies the
+     * subscribe method as such that the callback gets called
+     * right after subscribing to the observable, and returns it.
+     * @param observable Source observable
+     * @param callback Callback to be called
+     * @returns Observable
+     */
+    private subscriptionCallback<T>(observable: Observable<T>, callback: () => void): Observable<T> {
+        const originalSubscribe = observable.subscribe.bind(observable);
+        observable.subscribe = function(...subscribeArgs: any[]) {
+            const subscription = originalSubscribe(...subscribeArgs);
+            callback();
+            return subscription;
+        };
+        return observable;
     }
 }
 
@@ -506,8 +598,10 @@ export class RequestContext implements iRequestContext{
         );
     }
 
+    //Called by the response object for feedback
     public onResponseAborted(){ this.completed = true; }
     public onResponseFinished(){ this.completed = true; }
 
+    //Called by the connection
     public inboundResponse(packet: ResponsePacket){ this.res.receive(packet); }
 }

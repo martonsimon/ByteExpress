@@ -2,15 +2,19 @@ import { ByteStream } from "./src/ByteExpress/ByteStream/ByteStream";
 import { ByteStreamReader } from "./src/ByteExpress/ByteStream/ByteStreamReader";
 import { CallbackContext, NetworkHandler } from "./src/ByteExpress/Networking/NetworkHandler";
 import { ErrorCause } from "./src/ByteExpress/Packets/NetworkingPackets/ErrorCause.enum";
+import { NullPacket } from "./src/ByteExpress/Packets/NetworkingPackets/NullPacket";
 import { Payload } from "./src/ByteExpress/Packets/NetworkingPackets/Payload";
 import { RequestError } from "./src/ByteExpress/Packets/NetworkingPackets/RequestError";
 import { RequestPacket } from "./src/ByteExpress/Packets/NetworkingPackets/RequestPacket";
 import { ResponsePacket } from "./src/ByteExpress/Packets/NetworkingPackets/ResponsePacket";
+import { StringPacket } from "./src/ByteExpress/Packets/NetworkingPackets/StringPacket";
 import { TransferWrapper } from "./src/ByteExpress/Packets/NetworkingPackets/TransferWrapper";
 import { PacketManager } from "./src/ByteExpress/Packets/PacketManager";
 import { SamplePacket } from "./src/ByteExpress/Packets/SamplePacket";
 import { TestPacket1 } from "./src/ByteExpress/Packets/TestPackets/TestPacket1";
 import { Serializable } from "./src/ByteExpress/Serialization/Serializable";
+import { of, pipe, from, Observable, Observer, Subject, Subscriber, concat, TeardownLogic, PartialObserver, Subscription } from 'rxjs';
+import { tap, map } from 'rxjs/operators';
 
 const world = 'world';
 
@@ -20,18 +24,6 @@ export function hello(who: string = world): string {
 
 console.log("----------------------------");
 console.log("Application started!");
-
-/*let wrapper = new TransferWrapper();
-wrapper.flags.ack = true;
-wrapper.flags.chunked_packet = true;
-wrapper.packet_sequence = 2;
-wrapper.chunk_id = 0;
-wrapper.packet_id = 10;
-wrapper.payload_length = 2;
-wrapper.payload = new Uint8Array([255, 255]);*/
-
-//console.log(wrapper.toJson());
-//console.log(wrapper.toBytes().readAll());
 
 export function outboundCb1(id: number, data: Uint8Array, ctx?: CallbackContext){
     console.log(`[client]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
@@ -65,32 +57,6 @@ testPacket2.number1 = 2;
 testPacket2.number2 = 3;
 testPacket2.text1 = "packet to send by server";
 
-/*let pm = new PacketManager();
-let req = new RequestPacket(undefined, pm);
-req.flags.require_response = true;
-req.endpoint_id = 2;
-req.request_id = 2;
-req.setPayload(testPacket1);
-
-let data = req.toBytes().readAll();
-console.log(data);
-
-let req2 = new RequestPacket(undefined, pm);
-req2.fromBytes(new ByteStreamReader(data));
-console.log(req2.toJson());
-
-let res = new ResponsePacket(undefined, pm);
-res.flags.close_connection = true;
-res.request_id = 3;
-res.code = 200;
-res.setPayload(testPacket1);
-
-console.log(res.toJson());
-console.log(res.toBytes().readAll());
-
-let res2 = new ResponsePacket(undefined, pm);
-res2.fromBytes(res.toBytes());
-console.log(res2.toJson());*/
 
 
 let handler = networkServer.onRequest(0, TestPacket1, ctx => {
@@ -99,12 +65,30 @@ let handler = networkServer.onRequest(0, TestPacket1, ctx => {
     console.log(data.toJson());
     ctx.res.end(200);
 });
+let handler2 = networkServer.onEvent(0, "api/test", ctx => {
+    console.log("[server] got an event request");
+    ctx.res.write(new StringPacket("test1"));
+    ctx.res.write(new StringPacket("test2"));
+    ctx.res.end(200);
+});
 
-console.log("[client]: sennding request");
+/*console.log("[client]: sennding request");
 networkClient.request(0, testPacket1, true).then(ctx => {
     console.log("[client]: resolved request..");
     console.log(ctx.res.code);
     console.log(ctx.res.payload!.toJson());
 }).catch(ctx => {
     console.log("[client] request errored");
+});*/
+
+networkClient.eventRequest(0, "api/test", undefined).subscribe({
+    next: ctx => {
+        console.log("[client]: event request");
+        console.log(ctx.res.payload.toJson());  
+        console.log(ctx.res.code);
+    },
+    error: err => {
+        console.log("Error");
+    },
+    complete: () => console.log("complete")
 });

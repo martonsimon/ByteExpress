@@ -3,6 +3,7 @@ import { PacketManager } from "../Packets/PacketManager";
 import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
 import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, iRequestContext } from "./RequestHandler";
+import { Observable } from "rxjs";
 
 //Callback type for outbound data
 export type Callback = (id: number, data: Uint8Array, ctx?: CallbackContext) => void;
@@ -122,6 +123,14 @@ export class NetworkHandler{
     public onRequest(connectionId: number, endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.onRequest(endpoint, callback);
+    }
+    public eventRequest(connectionId: number, endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
+        let connection = this.connections.find(e => e.id == connectionId);
+        return connection!.eventRequest(endpointUrl, payload);
+    }
+    public onEvent(connectionId: number, endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        let connection = this.connections.find(e => e.id == connectionId);
+        return connection!.onEvent(endpoint, callback);
     }
 
 

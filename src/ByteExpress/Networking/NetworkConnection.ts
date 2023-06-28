@@ -8,6 +8,7 @@ import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
 import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler, iRequestContext } from "./RequestHandler";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
+import { Observable } from "rxjs";
 
 /**
  * Manages and track the state of each connection,
@@ -225,8 +226,8 @@ export class NetworkConnection{
         }
     }
     private onPacket(packet: Serializable){
-        console.log("a packet arrived");
-        console.log(packet.toJson());
+        console.log("[connection received packet]");
+        //console.log(packet.toJson());
 
         this.requestHandler.inboundPacket(packet);
     }
@@ -368,6 +369,12 @@ export class NetworkConnection{
     }
     public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         return this.requestHandler.onRequest(endpoint, callback);
+    }
+    public eventRequest(endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
+        return this.requestHandler.eventRequest(endpointUrl, payload);
+    }
+    public onEvent(endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandler.onEvent(endpoint, callback);
     }
 }
 

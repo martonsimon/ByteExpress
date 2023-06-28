@@ -61,13 +61,11 @@ export class Payload extends Serializable{
     }
     public fromPacket(packetManager: PacketManager, packet: Serializable | undefined){
         let payload = packet ? packet : new NullPacket();
-        let id = packetManager.getIdByInstance(payload);
-        if (!id)
-            throw new Error("Unknown packet");
+        let id = packetManager.getIdByInstance(payload, true);
         let data = payload.toBytes().readAll();
         let dataLength = data!.length;
 
-        this.packetId = id;
+        this.packetId = id!;
         this.payloadLength = dataLength;
         this.payload = data!;
     }
