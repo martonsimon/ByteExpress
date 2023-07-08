@@ -41,6 +41,8 @@ let server = new ByteExpressServer(serverOutbound);
 client.connect();
 server.connectClient(0);
 
+client.packetManager.addPacket(SamplePacket, 0);
+
 server.onRequest(StringPacket, ctx => {
     console.log("Request received");
 
@@ -63,12 +65,36 @@ server.onStream("api/test", async stream => {
 
 });
 
+server.onStream("api/test", async stream => {
+    console.log(await stream.readString());
+    console.log(await stream.readString());
+
+    stream.sendString("response 1");
+    stream.sendString("response 2");
+});
 client.stream("api/test", async stream => {
     stream.sendString("First message");
     stream.sendString("Second message");
+    stream.sendPacket(new StringPacket("A packet"));
+    stream.sendNumber(255, 1);
+    stream.sendString("A string");
+    stream.sendBytes(new Uint8Array([1, 2, 3, 4, 5]));
+    stream.sendAck();
+    await stream.readPacket(StringPacket);
+    await stream.readNumber();
+    await stream.readString();
+    await stream.readBytes();
+    await stream.readAck();
 
-    let resp1 = await stream.readString();
-    let resp2 = await stream.readString();
+    console.log(await stream.readString());
+    console.log(await stream.readString());
+});
+client.stream("api/test", async stream => {
+    //logic
+}, (stream, err) => {
+    //error
+}, stream => {
+    //complete
 });
 
 

@@ -2,6 +2,7 @@ import { Serializable } from "../Serialization/Serializable";
 import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
 import { ByteUtils } from "../ByteUtils/ByteUtils";
 import { Flags } from "../ByteUtils/Flags";
+import { StringPacket } from "./NetworkingPackets/StringPacket";
 
 export class SamplePacket extends Serializable{
     //sampleFlags: SamplepacketFlags = new SamplepacketFlags();
@@ -35,6 +36,7 @@ export class SamplePacket extends Serializable{
         //this.addNumber(this.number1, 2, true);
         //this.addString(this.text1);
         //this.addBytes(this.bytes1);
+
         throw new Error("Not implemented");
 
         return this.getSerialized();
