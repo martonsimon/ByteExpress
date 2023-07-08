@@ -60,27 +60,29 @@ testPacket2.text1 = "packet to send by server";
 
 
 
-let handler = networkServer.onRequest(0, TestPacket1, ctx => {
+let handler = networkServer.onRequest(TestPacket1, ctx => {
     console.log("[server] got a request for TestPacket1");
+    //networkServer.disconnectClient(0);
+    //networkClient.disconnectClient(0);
     let data = ctx.req.payload as TestPacket1;
     console.log(data.toJson());
     ctx.res.end(200);
 });
-let handler2 = networkServer.onEvent(0, "api/test", ctx => {
+/*let handler2 = networkServer.onEvent("api/test", ctx => {
     console.log("[server] got an event request");
     ctx.res.write(new StringPacket("test1"));
     ctx.res.write(new StringPacket("test2"));
     ctx.res.end(200);
-});
+});*/
 
-/*console.log("[client]: sennding request");
+console.log("[client]: sennding request");
 networkClient.request(0, testPacket1, true).then(ctx => {
     console.log("[client]: resolved request..");
     console.log(ctx.res.code);
     console.log(ctx.res.payload!.toJson());
 }).catch(ctx => {
     console.log("[client] request errored");
-});*/
+});
 
 /*networkClient.eventRequest(0, "api/test", undefined).subscribe({
     next: ctx => {
@@ -95,7 +97,7 @@ networkClient.request(0, testPacket1, true).then(ctx => {
 });*/
 
 
-networkServer.onStream(0, "api/test", async stream => {
+networkServer.onStream("api/test", async stream => {
     console.log("[server]: got a stream request");
     let msg = await stream.readPacket(StringPacket);
     console.log("[server]: received message: " + msg.text);
@@ -123,11 +125,12 @@ networkServer.onStream(0, "api/test", async stream => {
     console.log("[server]: waiting for packet when connection is aborted");
     //client won't send number
     //await stream.readNumber();
+    stream.autoClose = false;
 
 }, (stream, err) => {console.log("[server]: error"); console.log(err)}, () => console.log("[server]: stream done"));
 
 const startTime = process.hrtime.bigint();
-networkClient.stream(0, "api/test", async stream => {
+/*networkClient.stream(0, "api/test", async stream => {
     console.log("[client]: stream opened");
     stream.sendPacket(new StringPacket("first message"));
     await stream.readAck();
@@ -142,13 +145,15 @@ networkClient.stream(0, "api/test", async stream => {
     }
 
     console.log("[client]: sending a few data types");
+    console.log("aaaa");
     stream.sendNumber(10, 2);
-    stream.sendString("Hello");
+    stream.sendString("Hello"); 
     stream.sendBytes(new Uint8Array([1, 2, 3, 4, 5]));
     await stream.readAck();
 
     console.log("[client]: intentionally closing connection and waiting for values to be read at the server");
-    stream.close();
+    stream.autoClose = false;
+    //stream.close();
 
 }, (stream, err) => {
     console.log("[client]: stream error");
@@ -157,4 +162,4 @@ networkClient.stream(0, "api/test", async stream => {
     const endTime = process.hrtime.bigint();
     const executionTimeInMilliseconds = Number(endTime - startTime) / 1_000_000;
     console.log(`Task executed in ${executionTimeInMilliseconds} milliseconds`); 
-});
+});*/

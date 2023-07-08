@@ -34,14 +34,17 @@ export class StreamHandler{
     private outboundStreams: Array<Stream>;
     private inboundStreams: Array<Stream>;
     private streamHandlers: CallbackHandler<string, StreamCallbackHandler>;
+    private globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>;
 
     constructor(
         packetManager: PacketManager,
         connection: NetworkConnection,
+        globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>,
         streamSettings?: StreamSettings, //optional settings
     ){
         this.packetManager = packetManager;
         this.connection = connection;
+        this.globalStreamHandlers = globalStreamHandlers;
 
         this.testSetting = streamSettings?.testSetting ?? 0;
 
@@ -77,12 +80,8 @@ export class StreamHandler{
     }
 
     //METHODS FOR INCOMING STREAM REQUESTS
-    public onStream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): CallbackHandlerElement<string, StreamCallbackHandler>{
-        return this.streamHandlers.addCallback(endpoint, {
-            cb: callback,
-            err: errorCallback,
-            final: finalCallback,
-        });
+    public onStream(handler: CallbackHandlerElement<string, StreamCallbackHandler>): CallbackHandlerElement<string, StreamCallbackHandler>{
+        return this.streamHandlers.addCallbackElement(handler);
     }
     public inboundPacket(packet: Serializable){
         //Handle stream requests
@@ -106,7 +105,8 @@ export class StreamHandler{
     }
     private inboundStream(packet: StreamRequest){
         //Callback handlers
-        let handler = this.streamHandlers.find(packet.endpoint);
+        let handler = this.streamHandlers.find(packet.endpoint); //local handler first
+        handler = handler ?? this.globalStreamHandlers.find(packet.endpoint); //then global handler
         if (!handler)
             throw new Error("StreamContext: No handler for endpoint: " + packet.endpoint);
 
@@ -158,6 +158,19 @@ export class StreamHandler{
         this.abortStream(this.nextStreamId, true);
 
         return sequence;
+    }
+
+    //CONNECTION SPECIFIC
+    public onDisconnect(){
+        for (const stream of this.outboundStreams){
+            stream.abort();
+        }
+        for (const stream of this.inboundStreams){
+            stream.abort();
+        }
+        this.outboundStreams.splice(0, this.outboundStreams.length);
+        this.inboundStreams.splice(0, this.inboundStreams.length);
+        this.streamHandlers.clear();
     }
 }
 
@@ -270,6 +283,8 @@ class Stream implements iStream{
     public async callCb(): Promise<void>{ 
         try{
             await this.streamCallback(this);
+            if (this.autoClose)
+                this.close();
         } catch (err) {
             if (err instanceof StreamClosed){
                 //If StreamClosed is thrown, it simply
@@ -326,6 +341,8 @@ class Stream implements iStream{
         }
     }
     public _close(): void{
+        if (this.closed)
+            return;
         this.closed = true;
 
         //Make the pending reading throw an error if any
@@ -356,11 +373,21 @@ class Stream implements iStream{
 
     public abort(): void{
         this.aborted = true;
+        this.failed = true;
         this.close();
+    }
+    /**
+     * Throws an error if the stream is closed
+     */
+    private checkStatus(): void{
+        if (this.closed)
+            throw new StreamClosed();
     }
 
     //PUBLIC API
     sendPacket(packet: Serializable): void{
+        this.checkStatus(); //throws error if stream is closed
+
         let data = new StreamData(this.packetManager);
         data.flags.sender_initiated_stream = this.isOutbound;
         data.flags.close_connection = false;
@@ -387,6 +414,8 @@ class Stream implements iStream{
     }
 
     readPacket<T extends Serializable>(returnType?: new (...args: any[]) => T): Promise<T> {
+        this.checkStatus(); //throws error if stream is closed
+
         let subj = new Subject<Serializable>();
         this.readInboundQueue.push(subj);
         return new Promise<T>((resolve, reject) => {

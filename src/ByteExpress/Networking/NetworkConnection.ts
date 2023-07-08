@@ -5,7 +5,7 @@ import { PacketManager } from "../Packets/PacketManager";
 import { ByteStream } from "../ByteStream/ByteStream";
 import { ByteStreamWriter } from "../ByteStream/ByteStreamWriter";
 import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
-import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler, iRequestContext } from "./RequestHandler";
+import { CallbackHandler, CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler, iRequestContext } from "./RequestHandler";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 import { Observable } from "rxjs";
@@ -54,6 +54,8 @@ export class NetworkConnection{
         streamQueueSize: number,
         outboundCb: Callback,
         packetManager: PacketManager,
+        globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>,
+        globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>,
     ){
         this.id = id;
         this.maxPacketSize = maxPacketSize;
@@ -78,10 +80,12 @@ export class NetworkConnection{
         this.requestHandler = new RequestHandler(
             this.packetManager,
             this,
+            globalRequestHandlers,
         );
         this.streamHandler = new StreamHandler(
             this.packetManager,
             this,
+            globalStreamHandlers,
         );
 
         this.checkPayloadRestrictions();
@@ -391,25 +395,30 @@ export class NetworkConnection{
     private waitingForAck(): boolean{ return this.packetsDeltaAck >= this.packetsPerAck; }
     private waitingForDelay(): boolean{ return (Date.now() - this.lastSentAt) > this.sendRate; }
 
+    //CONNECTION
+    public disconnect(){
+        this.requestHandler.onDisconnect();
+        this.streamHandler.onDisconnect();
+    }
 
     //PUBLIC METHODS
     public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
         return this.requestHandler.request(packet, expectResponse, endpointUrl);
     }
-    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        return this.requestHandler.onRequest(endpoint, callback);
+    public onRequest(handler: CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandler.onRequest(handler);
     }
     public eventRequest(endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
         return this.requestHandler.eventRequest(endpointUrl, payload);
     }
-    public onEvent(endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        return this.requestHandler.onEvent(endpoint, callback);
+    public onEvent(handler: CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandler.onEvent(handler);
     }
     public stream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{
         return this.streamHandler.stream(endpoint, callback, errorCallback, finalCallback);
     }
-    public onStream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): CallbackHandlerElement<string, StreamCallbackHandler>{
-        return this.streamHandler.onStream(endpoint, callback, errorCallback, finalCallback);
+    public onStream(handler: CallbackHandlerElement<string, StreamCallbackHandler>): CallbackHandlerElement<string, StreamCallbackHandler>{
+        return this.streamHandler.onStream(handler);
     }
 }
 

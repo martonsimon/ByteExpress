@@ -6,6 +6,7 @@ import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { Payload } from "../Packets/NetworkingPackets/Payload";
 import { NullPacket } from "../Packets/NetworkingPackets/NullPacket";
 import { Subject, Observable, of, pipe, from, Observer } from 'rxjs';
+import { emitKeypressEvents } from "readline";
 
 export type HandlerSettings = { //Optional settings for requests
     timeout: number, //timeout in ms
@@ -25,17 +26,20 @@ export class RequestHandler{
     private outboundRequests: Array<RequestContext>;
     private inboundRequests: Array<RequestContext>;
     private requestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>;
+    private globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>;
 
     private readonly timeout: number;
 
     constructor(
         packetManager: PacketManager,
         networkConnection: NetworkConnection, //the connection where this handler is used
-        requestSettings?: HandlerSettings //optional settings
+        globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>,
+        requestSettings?: HandlerSettings, //optional settings
     )
     {
         this.packetManager = packetManager;
         this.connection = networkConnection;
+        this.globalRequestHandlers = globalRequestHandlers;
 
         this.nextSequence = 0;
         this.outboundRequests = new Array<RequestContext>();
@@ -113,14 +117,11 @@ export class RequestHandler{
     }
 
     //METHODS FOR INBOUND REQUESTS
-    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        let endpointVal: number | string | undefined = Serializable.prototype.isPrototypeOf((endpoint as any).prototype) ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
-        if (!endpointVal)
-            throw new Error("Packet must be added to packet manager");
-        return this.requestHandlers.addCallback(endpointVal, callback);
+    public onRequest(handler: CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandlers.addCallbackElement(handler);
     }
-    public onEvent(endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        return this.requestHandlers.addCallback(endpoint, callback);
+    public onEvent(handler: CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        return this.requestHandlers.addCallbackElement(handler);
     }
     private inboundRequest(packet: RequestPacket){
         let sequence = packet.request_id;
@@ -146,9 +147,11 @@ export class RequestHandler{
 
         //handle
         let key = packet.flags.endpoint_is_string ? packet.endpoint_str : packet.endpoint_id;
-        let handler = this.requestHandlers.find(key);
+        let handler = this.requestHandlers.find(key); //lookup the local handlers first
+        handler = handler ? handler : this.globalRequestHandlers.find(key); //then the global ones
         if (handler){
-            handler.getCallback()(ctx);
+            let cb = handler.getCallback();
+            ctx.res.callCb(cb, ctx);
         }
     }
 
@@ -213,6 +216,20 @@ export class RequestHandler{
 
         return sequence;
     }
+
+    //CONNECTION SPECIFIC METHODS
+    public onDisconnect(){
+        //Abort all pending requests
+        for (let i = this.outboundRequests.length - 1; i >= 0; i--){
+            let req = this.outboundRequests[i];
+            req.res.abort();
+        }
+        for (let i = this.inboundRequests.length - 1; i >= 0; i--){
+            let req = this.inboundRequests[i];
+            req.res.abort();
+        }
+        this.requestHandlers.clear();
+    }
 }
 
 /**
@@ -228,8 +245,12 @@ export class CallbackHandler<K, V>{
 
     public addCallback(key: K, cb: V): CallbackHandlerElement<K, V>{
         let handler = new CallbackHandlerElement(key, cb, this);
-        this.collection.push(handler);
+        this.addCallbackElement(handler);
         return this.find(key)!;
+    }
+    public addCallbackElement(element: CallbackHandlerElement<K, V>){
+        this.collection.push(element);
+        return element;
     }
     public deleteCallback(key: CallbackHandlerElement<K, V>){
         let index = this.collection.indexOf(key);
@@ -393,6 +414,7 @@ export class Response implements iResponse{
     public nthResponse: number;
     public closedConnection: boolean;
     public rejected: boolean;
+    public aborted: boolean;
     public timeout: NodeJS.Timeout | undefined;
 
     //For single requests
@@ -422,6 +444,7 @@ export class Response implements iResponse{
         this.nthResponse = 0;
         this.closedConnection = false;
         this.rejected = false;
+        this.aborted = false;
         this.outboundPromise = new Promise<iRequestContext>((resolve, reject) => {
             this.promiseResolveFn = resolve;
             this.promiseRejectFn = reject;
@@ -450,6 +473,7 @@ export class Response implements iResponse{
     public end(code: number){ this._write(undefined, code, true); }
     private _write(packet: Serializable | undefined, code: number, closeConnection: boolean){
         //Checks
+        this.checkStatus();
         if (!this.isOutbound)
             throw new Error("Writing data to an inbound response object is not allowed");
         if (!this.requireResponse)
@@ -538,6 +562,7 @@ export class Response implements iResponse{
         
         this.closedConnection = true;
         this.rejected = true;
+        this.aborted = true;
 
         this.context.onResponseAborted();
     }
@@ -569,6 +594,25 @@ export class Response implements iResponse{
             return subscription;
         };
         return observable;
+    }
+
+    /**
+     * Throws an error if the request is closed
+     */
+    private checkStatus(){
+        if (this.closedConnection)
+            throw new RequestClosed();
+    }
+    public async callCb(callback: CallbackHandlerCb, ctx: RequestContext): Promise<void>{
+        try{
+            await callback(ctx);
+        } catch (err){
+            if (err instanceof RequestClosed){
+
+            }else{
+                throw err;
+            }
+        }
     }
 }
 
@@ -609,4 +653,10 @@ export class RequestContext implements iRequestContext{
 
     //Called by the connection
     public inboundResponse(packet: ResponsePacket){ this.res.receive(packet); }
+}
+
+export class RequestClosed extends Error{
+    constructor(){
+        super("Request is closed, cannot write/read data to/from request");
+    }
 }

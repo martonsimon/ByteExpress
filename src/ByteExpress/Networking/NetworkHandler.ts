@@ -2,7 +2,7 @@ import { TransferWrapper } from "../Packets/NetworkingPackets/TransferWrapper";
 import { PacketManager } from "../Packets/PacketManager";
 import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
-import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, iRequestContext } from "./RequestHandler";
+import { CallbackHandler, CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, iRequestContext } from "./RequestHandler";
 import { Observable } from "rxjs";
 import { ErrorCallback, FinalCallback, StreamCallback, StreamCallbackHandler } from "./StreamHandler";
 
@@ -47,6 +47,8 @@ export class NetworkHandler{
     //Settings common
     private requestQueueSize: number;
     private streamQueueSize: number;
+    private requestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>;
+    private streamHandlers: CallbackHandler<string, StreamCallbackHandler>;
 
     //Private vars
     private readonly connections: Array<NetworkConnection> = new Array<NetworkConnection>(); //list of active connection
@@ -70,6 +72,8 @@ export class NetworkHandler{
 
         //init internal variables
         this._packetManager = new PacketManager();
+        this.requestHandlers = new CallbackHandler<(number | string), ((ctx: RequestContext) => void)>();
+        this.streamHandlers = new CallbackHandler<string, StreamCallbackHandler>();
     }
 
     /**
@@ -105,7 +109,8 @@ export class NetworkHandler{
         let connection = new NetworkConnection(
             id, this.maxPacketSize, this.connectionSendRate, this.connectionPacketsPerAck,
             this.requestQueueSize, this.streamQueueSize,
-            this.outboundCallback, this.packetManager
+            this.outboundCallback, this.packetManager,
+            this.requestHandlers, this.streamHandlers,
         );
         this.connections.push(connection);
     }
@@ -114,32 +119,55 @@ export class NetworkHandler{
      * @param id Client ID
      */
     public disconnectClient(id: number){
-
+        let connection = this.connections.find(e => e.id == id);
+        this.connections.splice(this.connections.indexOf(connection!), 1);
+        connection!.disconnect();
     }
 
     public request(connectionId: number, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.request(packet, expectResponse, endpointUrl);
     }
-    public onRequest(connectionId: number, endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        let connection = this.connections.find(e => e.id == connectionId);
-        return connection!.onRequest(endpoint, callback);
+    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb, connectionId?: number): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        let endpointVal: number | string | undefined = Serializable.prototype.isPrototypeOf((endpoint as any).prototype) ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
+        if (!endpointVal)
+            throw new Error("Packet must be added to packet manager");
+        let handler = this.requestHandlers.addCallback(endpointVal, callback);
+        if (connectionId){
+            let connection = this.connections.find(e => e.id == connectionId);
+            return connection!.onRequest(handler);
+        }else
+            return this.requestHandlers.addCallbackElement(handler);
     }
     public eventRequest(connectionId: number, endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.eventRequest(endpointUrl, payload);
     }
-    public onEvent(connectionId: number, endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
-        let connection = this.connections.find(e => e.id == connectionId);
-        return connection!.onEvent(endpoint, callback);
+    public onEvent(endpoint: string, callback: CallbackHandlerCb, connectionId?: number): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+        let handler = this.requestHandlers.addCallback(endpoint, callback);
+        if (connectionId){
+            let connection = this.connections.find(e => e.id == connectionId);
+            return connection!.onEvent(handler);
+        }
+        else
+            return handler;
     }
     public stream(connectionId: number, endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{
         let connection = this.connections.find(e => e.id == connectionId);
         connection!.stream(endpoint, callback, errorCallback, finalCallback);
     }
-    public onStream(connectionId: number, endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): CallbackHandlerElement<string, StreamCallbackHandler>{
-        let connection = this.connections.find(e => e.id == connectionId);
-        return connection!.onStream(endpoint, callback, errorCallback, finalCallback);
+    public onStream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback, connectionId?: number): CallbackHandlerElement<string, StreamCallbackHandler>{
+        let handler = this.streamHandlers.addCallback(endpoint, {
+            cb: callback,
+            err: errorCallback,
+            final: finalCallback,
+        });
+        if (connectionId){
+            let connection = this.connections.find(e => e.id == connectionId);
+            return connection!.onStream(handler);
+        }
+        else
+            return handler;
     }
 
 
