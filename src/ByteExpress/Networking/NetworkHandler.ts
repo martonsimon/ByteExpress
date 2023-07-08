@@ -20,7 +20,7 @@ export type CallbackContext = {
     next_sequence: number,
 };
 //Optional network settings
-type NetworkSettings = {
+export type NetworkSettings = {
     maxPacketSize?: number,
     connectionSendRate?: number,
     connectionPacketsPerAck?: number,
@@ -168,11 +168,5 @@ export class NetworkHandler{
         }
         else
             return handler;
-    }
-
-
-    public debugSendRaw(id: number, packet: Serializable){
-        let connection = this.connections.find(e => e.id == id);
-        connection!.sendPacket(packet);
     }
 }

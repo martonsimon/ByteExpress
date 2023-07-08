@@ -1,3 +1,5 @@
+import { ByteExpressClient } from "./src/ByteExpress/ByteExpressClient";
+import { ByteExpressServer } from "./src/ByteExpress/ByteExpressServer";
 import { ByteStream } from "./src/ByteExpress/ByteStream/ByteStream";
 import { ByteStreamReader } from "./src/ByteExpress/ByteStream/ByteStreamReader";
 import { CallbackContext, NetworkHandler } from "./src/ByteExpress/Networking/NetworkHandler";
@@ -26,6 +28,55 @@ export function hello(who: string = world): string {
 console.log("----------------------------");
 console.log("Application started!");
 
+export function clientOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
+    server.inboundData(0, data);
+}
+export function serverOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
+    client.inboundData(0, data);
+}
+
+let client = new ByteExpressClient(clientOutbound);
+let server = new ByteExpressServer(serverOutbound);
+
+client.connect();
+server.connectClient(0);
+
+server.onRequest(StringPacket, ctx => {
+    console.log("Request received");
+
+    let packet = ctx.req.payload as StringPacket;
+    console.log(packet.text); // logs "Payload"
+
+    ctx.res.write(new StringPacket("Response"));
+});
+
+client.request(new StringPacket("Payload"), true).then(ctx => {
+    console.log("Request sent");
+
+    let response = ctx.res.payload as StringPacket;
+    console.log(response.text); // logs "Response"
+}).catch(ctx => {
+    console.log("Error")
+});
+
+server.onStream("api/test", async stream => {
+
+});
+
+client.stream("api/test", async stream => {
+    stream.sendString("First message");
+    stream.sendString("Second message");
+
+    let resp1 = await stream.readString();
+    let resp2 = await stream.readString();
+});
+
+
+
+
+
+
+/*
 export function outboundCb1(id: number, data: Uint8Array, ctx?: CallbackContext){
     //console.log(`[client]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
     //console.log(ctx?.original_packet.toJson());
@@ -35,8 +86,8 @@ export function outboundCb2(id: number, data: Uint8Array, ctx?: CallbackContext)
     //console.log(`[server]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
     //console.log(ctx?.original_packet.toJson());
     networkClient.inboundData(0, data);
-}
-
+}*/
+/*
 let networkClient = new NetworkHandler(outboundCb1, {
     maxPacketSize: 255,
     connectionSendRate: 0,
@@ -45,8 +96,8 @@ networkClient.connectClient(0);
 let networkServer = new NetworkHandler(outboundCb2, {
     maxPacketSize: 255,
     connectionSendRate: 0,
-});
-networkServer.connectClient(0);
+});*/
+/*networkServer.connectClient(0);
 
 let testPacket1 = new TestPacket1();
 testPacket1.number1 = 2;
@@ -56,10 +107,10 @@ testPacket1.text1 = "packet to send by client";
 let testPacket2 = new TestPacket1();
 testPacket2.number1 = 2;
 testPacket2.number2 = 3;
-testPacket2.text1 = "packet to send by server";
+testPacket2.text1 = "packet to send by server";*/
 
 
-
+/*
 let handler = networkServer.onRequest(TestPacket1, ctx => {
     console.log("[server] got a request for TestPacket1");
     //networkServer.disconnectClient(0);
@@ -67,14 +118,14 @@ let handler = networkServer.onRequest(TestPacket1, ctx => {
     let data = ctx.req.payload as TestPacket1;
     console.log(data.toJson());
     ctx.res.end(200);
-});
+});*/
 /*let handler2 = networkServer.onEvent("api/test", ctx => {
     console.log("[server] got an event request");
     ctx.res.write(new StringPacket("test1"));
     ctx.res.write(new StringPacket("test2"));
     ctx.res.end(200);
 });*/
-
+/*
 console.log("[client]: sennding request");
 networkClient.request(0, testPacket1, true).then(ctx => {
     console.log("[client]: resolved request..");
@@ -83,7 +134,7 @@ networkClient.request(0, testPacket1, true).then(ctx => {
 }).catch(ctx => {
     console.log("[client] request errored");
 });
-
+*/
 /*networkClient.eventRequest(0, "api/test", undefined).subscribe({
     next: ctx => {
         console.log("[client]: event request");
@@ -96,7 +147,7 @@ networkClient.request(0, testPacket1, true).then(ctx => {
     complete: () => console.log("complete")
 });*/
 
-
+/*
 networkServer.onStream("api/test", async stream => {
     console.log("[server]: got a stream request");
     let msg = await stream.readPacket(StringPacket);
@@ -129,7 +180,7 @@ networkServer.onStream("api/test", async stream => {
 
 }, (stream, err) => {console.log("[server]: error"); console.log(err)}, () => console.log("[server]: stream done"));
 
-const startTime = process.hrtime.bigint();
+const startTime = process.hrtime.bigint();*/
 /*networkClient.stream(0, "api/test", async stream => {
     console.log("[client]: stream opened");
     stream.sendPacket(new StringPacket("first message"));
