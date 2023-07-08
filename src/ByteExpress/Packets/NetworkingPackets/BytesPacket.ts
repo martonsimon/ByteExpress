@@ -2,32 +2,32 @@ import { Serializable } from "../../Serialization/Serializable";
 import { ByteStreamReader } from "../../ByteStream/ByteStreamReader";
 
 /**
- * A simple packet that hold a string. Use it
- * for debugging purposes and tests. If a packet
- * needs a string field, use the serializer's
- * addString() method.
+ * A packet for sending bytes encapsulated
+ * in a packet (used especially in streams).
  */
-export class StringPacket extends Serializable{
-    public text: string = "<empty>"
+export class BytesPacket extends Serializable{
+    public bytes: Uint8Array = new Uint8Array(0);
 
-    constructor(text?: string){
+    constructor(bytes?: Uint8Array){
         super();
-        this.text = text ? text : "<empty>";
+        this.bytes = bytes ? bytes : new Uint8Array(0);
     }
     toJson(): object{
-        return {string: this.text};
+        return {bytes: this.bytes};
     }
     fromJson(data: string): boolean{
         throw new Error("Not implemented");
     }
     toBytes(): ByteStreamReader{
         this.initSerializer();
-        this.addString(this.text);
+        this.addNumber(this.bytes.length, 4);
+        this.addBytes(this.bytes);
         return this.getSerialized();
     }
     fromBytes(stream: ByteStreamReader): boolean{
         this.initDeserializer(stream);
-        this.text = this.getString();
+        let length = this.getNumber(4);
+        this.bytes = this.getBytes(length);
         return true;
     }
 }

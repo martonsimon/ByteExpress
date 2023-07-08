@@ -8,6 +8,9 @@ import { StreamRequest } from "../Packets/NetworkingPackets/StreamRequest";
 import { StreamData } from "../Packets/NetworkingPackets/StreamData";
 import { CallbackHandler, CallbackHandlerElement } from "./RequestHandler";
 import { AckPacket } from "../Packets/NetworkingPackets/AckPacket";
+import { NumberPacket } from "../Packets/NetworkingPackets/NumberPacket";
+import { StringPacket } from "../Packets/NetworkingPackets/StringPacket";
+import { BytesPacket } from "../Packets/NetworkingPackets/BytesPacket";
 
 export type StreamSettings = { //Optional settings for requests
     testSetting: number,
@@ -174,12 +177,21 @@ export interface iStream{
     isOutbound: boolean;
     autoClose: boolean;
     closed: boolean;
+    failed: boolean;
 
-    send(packet: Serializable): void;
+    sendPacket(packet: Serializable): void;
+    sendNumber(num: number, size: number): void;
+    sendString(str: string): void;
+    sendBytes(bytes: Uint8Array): void;
     sendAck(): void;
-    close(): void;
-    readInbound<T extends Serializable>(returnType?: new (...args: any[]) => T): Promise<T>;
+
+    readPacket<T extends Serializable>(returnType?: new (...args: any[]) => T): Promise<T>;
+    readNumber(): Promise<number>;
+    readString(): Promise<string>;
+    readBytes(): Promise<Uint8Array>;
     readAck(): Promise<void>;
+
+    close(): void;
 }
 
 /**
@@ -194,6 +206,7 @@ class Stream implements iStream{
     public autoClose: boolean; //when the callback function finishes, the stream is automatically closed
     public closed: boolean;
     public aborted: boolean;
+    public failed: boolean;
 
     //Internal members
     public readonly sequence: number; //stream sequence number, NOTE: both client and server determine their own sequence numbers, a sequnice is not unique for a connection
@@ -228,6 +241,7 @@ class Stream implements iStream{
         this.autoClose = true;
         this.closed = false;
         this.aborted = false;
+        this.failed = false;
         this.inboundPacketQueue = new Array<StreamData>();
         this.readInboundQueue = new Array<Subject<Serializable>>();
 
@@ -253,8 +267,21 @@ class Stream implements iStream{
     /**
      * Calls the associated callback to start the stream
      */
-    public callCb(): void{ 
-        this.streamCallback(this);
+    public async callCb(): Promise<void>{ 
+        try{
+            await this.streamCallback(this);
+        } catch (err) {
+            if (err instanceof StreamClosed){
+                //If StreamClosed is thrown, it simply
+                //means that an awaiting readPacket was
+                //rejected, so no need to throw
+                //NOTE: The error cb is called if given
+            }
+            else{
+                console.log("An error occured inside the stream callback.");
+                console.log(err);
+            }
+        }
     }
 
     /**
@@ -274,6 +301,10 @@ class Stream implements iStream{
      * @param packet StreamData
      */
     public inboundDataPacket(packet: StreamData): void{
+        //Do not process if the stream is closed
+        if (this.closed)
+            return;
+
         //Handle networking packets
         if (packet.flags.close_connection){
             this._close();
@@ -296,7 +327,17 @@ class Stream implements iStream{
     }
     public _close(): void{
         this.closed = true;
-        this.finalCallback?.(this);
+
+        //Make the pending reading throw an error if any
+        //for both server and client side
+        for (const subj of this.readInboundQueue){
+            subj.error(new StreamClosed());
+            //if the receiver have pending promises, the stream
+            //is failed and the error cb is called
+            this.failed = true;
+        }
+        this.readInboundQueue.splice(0, this.readInboundQueue.length);
+
 
         //If the stream is outbound, send a close packet
         if (this.isOutbound){
@@ -307,6 +348,10 @@ class Stream implements iStream{
             packet.streamId = this.sequence;
             this.connection.sendPacket(packet);
         }
+
+        if (this.failed || this.aborted)
+            this.errorCallback?.(this, new Error());
+        this.finalCallback?.(this);
     }
 
     public abort(): void{
@@ -315,7 +360,7 @@ class Stream implements iStream{
     }
 
     //PUBLIC API
-    send(packet: Serializable): void{
+    sendPacket(packet: Serializable): void{
         let data = new StreamData(this.packetManager);
         data.flags.sender_initiated_stream = this.isOutbound;
         data.flags.close_connection = false;
@@ -325,13 +370,23 @@ class Stream implements iStream{
 
         this.connection.sendPacket(data);
     }
+    sendNumber(num: number, size: number): void{
+        let packet = new NumberPacket(num, size);
+        this.sendPacket(packet);
+    }
+    sendString(str: string): void{
+        let packet = new StringPacket(str);
+        this.sendPacket(packet);
+    }
+    sendBytes(bytes: Uint8Array): void{
+        let packet = new BytesPacket(bytes);
+        this.sendPacket(packet);
+    }
     sendAck(): void {
-        this.send(new AckPacket());
+        this.sendPacket(new AckPacket());
     }
-    close(): void {
-        this._close();
-    }
-    readInbound<T extends Serializable>(returnType?: new (...args: any[]) => T): Promise<T> {
+
+    readPacket<T extends Serializable>(returnType?: new (...args: any[]) => T): Promise<T> {
         let subj = new Subject<Serializable>();
         this.readInboundQueue.push(subj);
         return new Promise<T>((resolve, reject) => {
@@ -348,7 +403,25 @@ class Stream implements iStream{
             this.processInboundPackets();
         });
     }
+    readNumber(): Promise<number>{
+        return this.readPacket(NumberPacket).then(x => x.num);
+    }
+    readString(): Promise<string>{
+        return this.readPacket(StringPacket).then(x => x.text);
+    }
+    readBytes(): Promise<Uint8Array>{
+        return this.readPacket(BytesPacket).then(x => x.bytes);
+    }
     readAck(): Promise<void> {
-        return this.readInbound(AckPacket) as unknown as Promise<void>;
+        return this.readPacket(AckPacket) as unknown as Promise<void>;
+    }
+
+    close(): void {
+        this._close();
+    }
+}
+export class StreamClosed extends Error{
+    constructor(){
+        super("Stream has been closed/aborted");
     }
 }

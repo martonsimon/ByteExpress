@@ -11,6 +11,8 @@ import { StringPacket } from "./NetworkingPackets/StringPacket";
 import { StreamRequest } from "./NetworkingPackets/StreamRequest";
 import { StreamData } from "./NetworkingPackets/StreamData";
 import { AckPacket } from "./NetworkingPackets/AckPacket";
+import { NumberPacket } from "./NetworkingPackets/NumberPacket";
+import { BytesPacket } from "./NetworkingPackets/BytesPacket";
 
 type ClassIdPair = {
     cls: new () => Serializable,
@@ -38,6 +40,8 @@ export class PacketManager{
         this._addPacket(StreamRequest,          60_009);
         this._addPacket(StreamData,             60_010);
         this._addPacket(AckPacket,              60_011);
+        this._addPacket(NumberPacket,           60_012);
+        this._addPacket(BytesPacket,            60_013);
 
         this.checkRepeatedIndices();
     }

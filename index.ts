@@ -97,57 +97,59 @@ networkClient.request(0, testPacket1, true).then(ctx => {
 
 networkServer.onStream(0, "api/test", async stream => {
     console.log("[server]: got a stream request");
-    let msg = await stream.readInbound(StringPacket);
+    let msg = await stream.readPacket(StringPacket);
     console.log("[server]: received message: " + msg.text);
     stream.sendAck();
-    msg = await stream.readInbound(StringPacket);
+    msg = await stream.readPacket(StringPacket);
     console.log("[server]: received message: " + msg.text);
 
-    stream.send(new StringPacket(`response
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
-        asdasdasdasdasdasdasdaasdasdasdasdasdasdasda
+    stream.sendPacket(new StringPacket(`response
     `));
 
-    for (let i = 0; i < 100_000; i++){
-        let msg = await stream.readInbound(StringPacket);
-        msg = await stream.readInbound(StringPacket);
-        msg = await stream.readInbound(StringPacket);
-        msg = await stream.readInbound(StringPacket);
+    for (let i = 0; i < 1_000; i++){
+        let msg = await stream.readPacket(StringPacket);
         if (i % 100 == 0)
             console.log(msg.toJson());
         stream.sendAck();
     }
-}, undefined, () => console.log("[server]: stream done"));
+
+    console.log("[server]: receiving a few data types");
+
+    console.log(await stream.readNumber());
+    console.log(await stream.readString());
+    console.log(await stream.readBytes());
+    stream.sendAck();
+
+    console.log("[server]: waiting for packet when connection is aborted");
+    //client won't send number
+    //await stream.readNumber();
+
+}, (stream, err) => {console.log("[server]: error"); console.log(err)}, () => console.log("[server]: stream done"));
 
 const startTime = process.hrtime.bigint();
 networkClient.stream(0, "api/test", async stream => {
     console.log("[client]: stream opened");
-    stream.send(new StringPacket("first message"));
+    stream.sendPacket(new StringPacket("first message"));
     await stream.readAck();
-    stream.send(new StringPacket("second message"));
+    stream.sendPacket(new StringPacket("second message"));
 
-    let msg = await stream.readInbound(StringPacket);
+    let msg = await stream.readPacket(StringPacket);
     console.log("[client]: received message: " + msg.text);
 
-    for (let i = 0; i < 100_000; i++){
-        stream.send(new StringPacket("message " + i));
-        stream.send(new StringPacket("message " + i));
-        stream.send(new StringPacket("message " + i));
-        stream.send(new StringPacket("message " + i));
+    for (let i = 0; i < 1_000; i++){
+        stream.sendPacket(new StringPacket("message " + i));
         await stream.readAck();
     }
 
+    console.log("[client]: sending a few data types");
+    stream.sendNumber(10, 2);
+    stream.sendString("Hello");
+    stream.sendBytes(new Uint8Array([1, 2, 3, 4, 5]));
+    await stream.readAck();
+
+    console.log("[client]: intentionally closing connection and waiting for values to be read at the server");
     stream.close();
+
 }, (stream, err) => {
     console.log("[client]: stream error");
 }, stream => {
@@ -156,33 +158,3 @@ networkClient.stream(0, "api/test", async stream => {
     const executionTimeInMilliseconds = Number(endTime - startTime) / 1_000_000;
     console.log(`Task executed in ${executionTimeInMilliseconds} milliseconds`); 
 });
-
-let timeoutTest: NodeJS.Timeout | undefined;
-let iTimeout = 0;
-
-function setTimeoutTest(){
-    timeoutTest = setTimeout(() => {
-        if (iTimeout == 200)
-        {
-                console.log("completed");
-                return;
-        }
-        console.log(iTimeout);
-        iTimeout++;
-        setTimeoutTest();
-    }, 0);
-}
-//setTimeoutTest();
-/*
-let count = 0;
-
-function incrementAndRecurse() {
-    count++;
-    incrementAndRecurse();
-}
-
-try {
-    incrementAndRecurse();
-} catch (e) {
-    console.log(`Call stack size: ${count}`);
-}*/
