@@ -102,11 +102,12 @@ ResponsePacket
 RequestError
     cause
 
-TunnelRequest
+StreamRequest
     endpoint
     tunnel_id
-TunnelData
+StreamData
     flags:
+        sender_initiated_stream
         tunnel_requested_by_sender //since both parties can request a tunnel, the id need to be distinguished
         close_connection
         error_respone

@@ -28,7 +28,7 @@ provides callback for outbound data.</p>
 <ul class="tsd-hierarchy">
 <li><span class="target">NetworkConnection</span></li></ul></section><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L18">Networking/NetworkConnection.ts:18</a></li></ul></aside>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L19">Networking/NetworkConnection.ts:19</a></li></ul></aside>
 <section class="tsd-panel-group tsd-index-group">
 <section class="tsd-panel tsd-index-panel">
 <details class="tsd-index-content tsd-index-accordion" open><summary class="tsd-accordion-summary tsd-index-summary">
@@ -67,11 +67,13 @@ provides callback for outbound data.</p>
 <a href="Networking_NetworkConnection.NetworkConnection.html#calculateEmptyPacketSize" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>calculate<wbr/>Empty<wbr/>Packet<wbr/>Size</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#calculatePayloadSize" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>calculate<wbr/>Payload<wbr/>Size</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#checkPayloadRestrictions" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>check<wbr/>Payload<wbr/>Restrictions</span></a>
+<a href="Networking_NetworkConnection.NetworkConnection.html#eventRequest" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>event<wbr/>Request</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#extractPacket" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>extract<wbr/>Packet</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#flushOutboundQueue" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>flush<wbr/>Outbound<wbr/>Queue</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#handleAck" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>handle<wbr/>Ack</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#inboundData" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>inbound<wbr/>Data</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#incrementSequence" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>increment<wbr/>Sequence</span></a>
+<a href="Networking_NetworkConnection.NetworkConnection.html#onEvent" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Event</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#onPacket" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Packet</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#onPacketChunk" class="tsd-index-link tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Packet<wbr/>Chunk</span></a>
 <a href="Networking_NetworkConnection.NetworkConnection.html#onRequest" class="tsd-index-link"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Request</span></a>
@@ -110,109 +112,109 @@ provides callback for outbound data.</p>
 <h5><span class="tsd-kind-parameter">packetManager</span>: <a href="Packets_PacketManager.PacketManager.html" class="tsd-signature-type tsd-kind-class">PacketManager</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Networking_NetworkConnection.NetworkConnection.html" class="tsd-signature-type tsd-kind-class">NetworkConnection</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L44">Networking/NetworkConnection.ts:44</a></li></ul></aside></li></ul></section></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L45">Networking/NetworkConnection.ts:45</a></li></ul></aside></li></ul></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Properties</h2>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="buffer" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>buffer</span><a href="#buffer" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">buffer</span><span class="tsd-signature-symbol">:</span> <a href="ByteStream_ByteStream.ByteStream.html" class="tsd-signature-type tsd-kind-class">ByteStream</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L39">Networking/NetworkConnection.ts:39</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L40">Networking/NetworkConnection.ts:40</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="id" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>id</span><a href="#id" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">id</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L20">Networking/NetworkConnection.ts:20</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L21">Networking/NetworkConnection.ts:21</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="lastSentAt" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>last<wbr/>Sent<wbr/>At</span><a href="#lastSentAt" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">last<wbr/>Sent<wbr/>At</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L30">Networking/NetworkConnection.ts:30</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L31">Networking/NetworkConnection.ts:31</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="maxChunkedPacketPayload" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>max<wbr/>Chunked<wbr/>Packet<wbr/>Payload</span><a href="#maxChunkedPacketPayload" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">max<wbr/>Chunked<wbr/>Packet<wbr/>Payload</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L33">Networking/NetworkConnection.ts:33</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L34">Networking/NetworkConnection.ts:34</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="maxChunkedPacketPayloadContinuous" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>max<wbr/>Chunked<wbr/>Packet<wbr/>Payload<wbr/>Continuous</span><a href="#maxChunkedPacketPayloadContinuous" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">max<wbr/>Chunked<wbr/>Packet<wbr/>Payload<wbr/>Continuous</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L34">Networking/NetworkConnection.ts:34</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L35">Networking/NetworkConnection.ts:35</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="maxPacketSize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>max<wbr/>Packet<wbr/>Size</span><a href="#maxPacketSize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">max<wbr/>Packet<wbr/>Size</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L21">Networking/NetworkConnection.ts:21</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L22">Networking/NetworkConnection.ts:22</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="maxSinglePacketPayload" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>max<wbr/>Single<wbr/>Packet<wbr/>Payload</span><a href="#maxSinglePacketPayload" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">max<wbr/>Single<wbr/>Packet<wbr/>Payload</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L32">Networking/NetworkConnection.ts:32</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L33">Networking/NetworkConnection.ts:33</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="nextSequence" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>next<wbr/>Sequence</span><a href="#nextSequence" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">next<wbr/>Sequence</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L35">Networking/NetworkConnection.ts:35</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L36">Networking/NetworkConnection.ts:36</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="outboundCb" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>outbound<wbr/>Cb</span><a href="#outboundCb" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">outbound<wbr/>Cb</span><span class="tsd-signature-symbol">:</span> <a href="../types/Networking_NetworkHandler.Callback.html" class="tsd-signature-type tsd-kind-type-alias">Callback</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L26">Networking/NetworkConnection.ts:26</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L27">Networking/NetworkConnection.ts:27</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="outboundQueue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>outbound<wbr/>Queue</span><a href="#outboundQueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">outbound<wbr/>Queue</span><span class="tsd-signature-symbol">:</span> <a href="Packets_NetworkingPackets_TransferWrapper.TransferWrapper.html" class="tsd-signature-type tsd-kind-class">TransferWrapper</a><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L36">Networking/NetworkConnection.ts:36</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L37">Networking/NetworkConnection.ts:37</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="packetBuffers" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>packet<wbr/>Buffers</span><a href="#packetBuffers" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">packet<wbr/>Buffers</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type ">PacketBuffer</span><span class="tsd-signature-symbol">[]</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L41">Networking/NetworkConnection.ts:41</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L42">Networking/NetworkConnection.ts:42</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="packetManager" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>packet<wbr/>Manager</span><a href="#packetManager" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">packet<wbr/>Manager</span><span class="tsd-signature-symbol">:</span> <a href="Packets_PacketManager.PacketManager.html" class="tsd-signature-type tsd-kind-class">PacketManager</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L27">Networking/NetworkConnection.ts:27</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L28">Networking/NetworkConnection.ts:28</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="packetsDeltaAck" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>packets<wbr/>Delta<wbr/>Ack</span><a href="#packetsDeltaAck" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">packets<wbr/>Delta<wbr/>Ack</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L31">Networking/NetworkConnection.ts:31</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L32">Networking/NetworkConnection.ts:32</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="packetsPerAck" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>packets<wbr/>Per<wbr/>Ack</span><a href="#packetsPerAck" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">packets<wbr/>Per<wbr/>Ack</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L23">Networking/NetworkConnection.ts:23</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L24">Networking/NetworkConnection.ts:24</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="requestHandler" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>request<wbr/>Handler</span><a href="#requestHandler" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">request<wbr/>Handler</span><span class="tsd-signature-symbol">:</span> <a href="Networking_RequestHandler.RequestHandler.html" class="tsd-signature-type tsd-kind-class">RequestHandler</a></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L42">Networking/NetworkConnection.ts:42</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L43">Networking/NetworkConnection.ts:43</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="requestQueueSize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>request<wbr/>Queue<wbr/>Size</span><a href="#requestQueueSize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">request<wbr/>Queue<wbr/>Size</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L24">Networking/NetworkConnection.ts:24</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L25">Networking/NetworkConnection.ts:25</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="requiredPacketLength" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>required<wbr/>Packet<wbr/>Length</span><a href="#requiredPacketLength" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">required<wbr/>Packet<wbr/>Length</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L40">Networking/NetworkConnection.ts:40</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L41">Networking/NetworkConnection.ts:41</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="sendRate" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>send<wbr/>Rate</span><a href="#sendRate" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">send<wbr/>Rate</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L22">Networking/NetworkConnection.ts:22</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L23">Networking/NetworkConnection.ts:23</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="sendTimeout" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>send<wbr/>Timeout</span><a href="#sendTimeout" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">send<wbr/>Timeout</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><span class="tsd-signature-type ">Timeout</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L37">Networking/NetworkConnection.ts:37</a></li></ul></aside></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L38">Networking/NetworkConnection.ts:38</a></li></ul></aside></section>
 <section class="tsd-panel tsd-member"><a id="streamQueueSize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagReadonly">Readonly</code> <span>stream<wbr/>Queue<wbr/>Size</span><a href="#streamQueueSize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <div class="tsd-signature"><span class="tsd-kind-property">stream<wbr/>Queue<wbr/>Size</span><span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">number</span></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L25">Networking/NetworkConnection.ts:25</a></li></ul></aside></section></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L26">Networking/NetworkConnection.ts:26</a></li></ul></aside></section></section>
 <section class="tsd-panel-group tsd-member-group">
 <h2>Methods</h2>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="_processBuffer" class="tsd-anchor"></a>
@@ -222,7 +224,7 @@ provides callback for outbound data.</p>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L185">Networking/NetworkConnection.ts:185</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L187">Networking/NetworkConnection.ts:187</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="calculateEmptyPacketSize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>calculate<wbr/>Empty<wbr/>Packet<wbr/>Size</span><a href="#calculateEmptyPacketSize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -241,7 +243,7 @@ provides callback for outbound data.</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L278">Networking/NetworkConnection.ts:278</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L282">Networking/NetworkConnection.ts:282</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="calculatePayloadSize" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>calculate<wbr/>Payload<wbr/>Size</span><a href="#calculatePayloadSize" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -264,7 +266,7 @@ provides callback for outbound data.</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L266">Networking/NetworkConnection.ts:266</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L270">Networking/NetworkConnection.ts:270</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="checkPayloadRestrictions" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>check<wbr/>Payload<wbr/>Restrictions</span><a href="#checkPayloadRestrictions" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -276,7 +278,22 @@ due to incorrect max packet size</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L291">Networking/NetworkConnection.ts:291</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L295">Networking/NetworkConnection.ts:295</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="eventRequest" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>event<wbr/>Request</span><a href="#eventRequest" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="eventRequest.eventRequest-1"><span class="tsd-kind-call-signature">event<wbr/>Request</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">endpointUrl</span>, <span class="tsd-kind-parameter">payload</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Networking_RequestHandler.iRequestContext.html" class="tsd-signature-type tsd-kind-interface">iRequestContext</a><span class="tsd-signature-symbol">&gt;</span><a href="#eventRequest.eventRequest-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">endpointUrl</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">payload</span>: <span class="tsd-signature-type">undefined</span><span class="tsd-signature-symbol"> | </span><a href="Serialization_Serializable.Serializable.html" class="tsd-signature-type tsd-kind-class">Serializable</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Observable</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Networking_RequestHandler.iRequestContext.html" class="tsd-signature-type tsd-kind-interface">iRequestContext</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L373">Networking/NetworkConnection.ts:373</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="extractPacket" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>extract<wbr/>Packet</span><a href="#extractPacket" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -289,7 +306,7 @@ due to incorrect max packet size</p>
 <h5><span class="tsd-kind-parameter">wrapper</span>: <a href="Packets_NetworkingPackets_TransferWrapper.TransferWrapper.html" class="tsd-signature-type tsd-kind-class">TransferWrapper</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Serialization_Serializable.Serializable.html" class="tsd-signature-type tsd-kind-class">Serializable</a></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L298">Networking/NetworkConnection.ts:298</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L302">Networking/NetworkConnection.ts:302</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="flushOutboundQueue" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>flush<wbr/>Outbound<wbr/>Queue</span><a href="#flushOutboundQueue" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -302,7 +319,7 @@ due to incorrect max packet size</p>
 <h5><span class="tsd-kind-parameter">flushImmediately</span>: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> = false</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L146">Networking/NetworkConnection.ts:146</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L146">Networking/NetworkConnection.ts:146</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="handleAck" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>handle<wbr/>Ack</span><a href="#handleAck" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -315,7 +332,7 @@ due to incorrect max packet size</p>
 <h5><span class="tsd-kind-parameter">packet</span>: <a href="Packets_NetworkingPackets_TransferWrapper.TransferWrapper.html" class="tsd-signature-type tsd-kind-class">TransferWrapper</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L312">Networking/NetworkConnection.ts:312</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L318">Networking/NetworkConnection.ts:318</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="inboundData" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>inbound<wbr/>Data</span><a href="#inboundData" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -328,7 +345,7 @@ due to incorrect max packet size</p>
 <h5><span class="tsd-kind-parameter">data</span>: <span class="tsd-signature-type ">Uint8Array</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L181">Networking/NetworkConnection.ts:181</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L183">Networking/NetworkConnection.ts:183</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="incrementSequence" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>increment<wbr/>Sequence</span><a href="#incrementSequence" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -340,7 +357,22 @@ sequence by 1 and handles roll overs</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L355">Networking/NetworkConnection.ts:355</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L361">Networking/NetworkConnection.ts:361</a></li></ul></aside></li></ul></section>
+<section class="tsd-panel tsd-member"><a id="onEvent" class="tsd-anchor"></a>
+<h3 class="tsd-anchor-link"><span>on<wbr/>Event</span><a href="#onEvent" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
+<ul class="tsd-signatures">
+<li class="tsd-signature tsd-anchor-link" id="onEvent.onEvent-1"><span class="tsd-kind-call-signature">on<wbr/>Event</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">endpoint</span>, <span class="tsd-kind-parameter">callback</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="Networking_RequestHandler.CallbackHandlerElement.html" class="tsd-signature-type tsd-kind-class">CallbackHandlerElement</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/Networking_RequestHandler.CallbackHandlerKey.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerKey</a><span class="tsd-signature-symbol">, </span><a href="../types/Networking_RequestHandler.CallbackHandlerCb.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerCb</a><span class="tsd-signature-symbol">&gt;</span><a href="#onEvent.onEvent-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-description">
+<div class="tsd-parameters">
+<h4 class="tsd-parameters-title">Parameters</h4>
+<ul class="tsd-parameter-list">
+<li>
+<h5><span class="tsd-kind-parameter">endpoint</span>: <span class="tsd-signature-type">string</span></h5></li>
+<li>
+<h5><span class="tsd-kind-parameter">callback</span>: <a href="../types/Networking_RequestHandler.CallbackHandlerCb.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerCb</a></h5></li></ul></div>
+<h4 class="tsd-returns-title">Returns <a href="Networking_RequestHandler.CallbackHandlerElement.html" class="tsd-signature-type tsd-kind-class">CallbackHandlerElement</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/Networking_RequestHandler.CallbackHandlerKey.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerKey</a><span class="tsd-signature-symbol">, </span><a href="../types/Networking_RequestHandler.CallbackHandlerCb.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerCb</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<ul>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L376">Networking/NetworkConnection.ts:376</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="onPacket" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>on<wbr/>Packet</span><a href="#onPacket" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -353,7 +385,7 @@ sequence by 1 and handles roll overs</p>
 <h5><span class="tsd-kind-parameter">packet</span>: <a href="Serialization_Serializable.Serializable.html" class="tsd-signature-type tsd-kind-class">Serializable</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L226">Networking/NetworkConnection.ts:226</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L228">Networking/NetworkConnection.ts:228</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="onPacketChunk" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>on<wbr/>Packet<wbr/>Chunk</span><a href="#onPacketChunk" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -366,7 +398,7 @@ sequence by 1 and handles roll overs</p>
 <h5><span class="tsd-kind-parameter">packet</span>: <a href="Packets_NetworkingPackets_TransferWrapper.TransferWrapper.html" class="tsd-signature-type tsd-kind-class">TransferWrapper</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L232">Networking/NetworkConnection.ts:232</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L234">Networking/NetworkConnection.ts:234</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="onRequest" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>on<wbr/>Request</span><a href="#onRequest" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -381,7 +413,7 @@ sequence by 1 and handles roll overs</p>
 <h5><span class="tsd-kind-parameter">callback</span>: <a href="../types/Networking_RequestHandler.CallbackHandlerCb.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerCb</a></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <a href="Networking_RequestHandler.CallbackHandlerElement.html" class="tsd-signature-type tsd-kind-class">CallbackHandlerElement</a><span class="tsd-signature-symbol">&lt;</span><a href="../types/Networking_RequestHandler.CallbackHandlerKey.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerKey</a><span class="tsd-signature-symbol">, </span><a href="../types/Networking_RequestHandler.CallbackHandlerCb.html" class="tsd-signature-type tsd-kind-type-alias">CallbackHandlerCb</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L365">Networking/NetworkConnection.ts:365</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L370">Networking/NetworkConnection.ts:370</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="queuePacket" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>queue<wbr/>Packet</span><a href="#queuePacket" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -402,11 +434,11 @@ sequence by 1 and handles roll overs</p>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L139">Networking/NetworkConnection.ts:139</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L140">Networking/NetworkConnection.ts:140</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="request" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>request</span><a href="#request" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
-<li class="tsd-signature tsd-anchor-link" id="request.request-1"><span class="tsd-kind-call-signature">request</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">packet</span>, <span class="tsd-kind-parameter">expectResponse</span>, <span class="tsd-kind-parameter">endpointUrl</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Networking_RequestHandler.RequestContext.html" class="tsd-signature-type tsd-kind-class">RequestContext</a><span class="tsd-signature-symbol">&gt;</span><a href="#request.request-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
+<li class="tsd-signature tsd-anchor-link" id="request.request-1"><span class="tsd-kind-call-signature">request</span><span class="tsd-signature-symbol">(</span><span class="tsd-kind-parameter">packet</span>, <span class="tsd-kind-parameter">expectResponse</span>, <span class="tsd-kind-parameter">endpointUrl</span><span class="tsd-signature-symbol">?</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Networking_RequestHandler.iRequestContext.html" class="tsd-signature-type tsd-kind-interface">iRequestContext</a><span class="tsd-signature-symbol">&gt;</span><a href="#request.request-1" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></li>
 <li class="tsd-description">
 <div class="tsd-parameters">
 <h4 class="tsd-parameters-title">Parameters</h4>
@@ -417,9 +449,9 @@ sequence by 1 and handles roll overs</p>
 <h5><span class="tsd-kind-parameter">expectResponse</span>: <span class="tsd-signature-type">boolean</span></h5></li>
 <li>
 <h5><code class="tsd-tag ts-flagOptional">Optional</code> <span class="tsd-kind-parameter">endpointUrl</span>: <span class="tsd-signature-type">string</span></h5></li></ul></div>
-<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="Networking_RequestHandler.RequestContext.html" class="tsd-signature-type tsd-kind-class">RequestContext</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
+<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type ">Promise</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/Networking_RequestHandler.iRequestContext.html" class="tsd-signature-type tsd-kind-interface">iRequestContext</a><span class="tsd-signature-symbol">&gt;</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L362">Networking/NetworkConnection.ts:362</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L367">Networking/NetworkConnection.ts:367</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="sendAck" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>send<wbr/>Ack</span><a href="#sendAck" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -432,7 +464,7 @@ sequence by 1 and handles roll overs</p>
 <h5><span class="tsd-kind-parameter">forceSend</span>: <span class="tsd-signature-type">boolean</span></h5></li></ul></div>
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L330">Networking/NetworkConnection.ts:330</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L336">Networking/NetworkConnection.ts:336</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member"><a id="sendPacket" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><span>send<wbr/>Packet</span><a href="#sendPacket" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures">
@@ -457,7 +489,7 @@ into smaller chunks as necessary</p>
 
 <div class="tsd-comment tsd-typography"></div><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L88">Networking/NetworkConnection.ts:88</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L90">Networking/NetworkConnection.ts:90</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="waitingForAck" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>waiting<wbr/>For<wbr/>Ack</span><a href="#waitingForAck" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -465,7 +497,7 @@ into smaller chunks as necessary</p>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L356">Networking/NetworkConnection.ts:356</a></li></ul></aside></li></ul></section>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L362">Networking/NetworkConnection.ts:362</a></li></ul></aside></li></ul></section>
 <section class="tsd-panel tsd-member tsd-is-private"><a id="waitingForDelay" class="tsd-anchor"></a>
 <h3 class="tsd-anchor-link"><code class="tsd-tag ts-flagPrivate">Private</code> <span>waiting<wbr/>For<wbr/>Delay</span><a href="#waitingForDelay" aria-label="Permalink" class="tsd-anchor-icon"><svg viewBox="0 0 24 24"><use href="#icon-anchor"></use></svg></a></h3>
 <ul class="tsd-signatures tsd-is-private">
@@ -473,7 +505,7 @@ into smaller chunks as necessary</p>
 <li class="tsd-description">
 <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4><aside class="tsd-sources">
 <ul>
-<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/ba85449/src/ByteExpress/Networking/NetworkConnection.ts#L357">Networking/NetworkConnection.ts:357</a></li></ul></aside></li></ul></section></section></div>
+<li>Defined in <a href="https://github.com/martonsimon/ByteExpress/blob/4452d91/src/ByteExpress/Networking/NetworkConnection.ts#L363">Networking/NetworkConnection.ts:363</a></li></ul></aside></li></ul></section></section></div>
 <div class="col-sidebar">
 <div class="page-menu">
 <div class="tsd-navigation settings">
@@ -518,11 +550,13 @@ into smaller chunks as necessary</p>
 <li><a href="#calculateEmptyPacketSize" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>calculate<wbr/>Empty<wbr/>Packet<wbr/>Size</span></a></li>
 <li><a href="#calculatePayloadSize" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>calculate<wbr/>Payload<wbr/>Size</span></a></li>
 <li><a href="#checkPayloadRestrictions" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>check<wbr/>Payload<wbr/>Restrictions</span></a></li>
+<li><a href="#eventRequest" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>event<wbr/>Request</span></a></li>
 <li><a href="#extractPacket" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>extract<wbr/>Packet</span></a></li>
 <li><a href="#flushOutboundQueue" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>flush<wbr/>Outbound<wbr/>Queue</span></a></li>
 <li><a href="#handleAck" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>handle<wbr/>Ack</span></a></li>
 <li><a href="#inboundData" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>inbound<wbr/>Data</span></a></li>
 <li><a href="#incrementSequence" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>increment<wbr/>Sequence</span></a></li>
+<li><a href="#onEvent" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Event</span></a></li>
 <li><a href="#onPacket" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Packet</span></a></li>
 <li><a href="#onPacketChunk" class="tsd-is-private"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Packet<wbr/>Chunk</span></a></li>
 <li><a href="#onRequest" class=""><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-2048"></use></svg><span>on<wbr/>Request</span></a></li>
@@ -548,7 +582,6 @@ into smaller chunks as necessary</p>
 <ul class="tsd-nested-navigation">
 <li><a href="Networking_NetworkConnection.NetworkConnection.html" class="current"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><g id="icon-128"><rect fill="var(--color-icon-background)" stroke="var(--color-ts-class)" stroke-width="1.5" x="1" y="1" width="22" height="22" rx="6"></rect><path d="M11.898 16.1201C11.098 16.1201 10.466 15.8961 10.002 15.4481C9.53803 15.0001 9.30603 14.3841 9.30603 13.6001V9.64012C9.30603 8.85612 9.53803 8.24012 10.002 7.79212C10.466 7.34412 11.098 7.12012 11.898 7.12012C12.682 7.12012 13.306 7.34812 13.77 7.80412C14.234 8.25212 14.466 8.86412 14.466 9.64012H13.386C13.386 9.14412 13.254 8.76412 12.99 8.50012C12.734 8.22812 12.37 8.09212 11.898 8.09212C11.426 8.09212 11.054 8.22412 10.782 8.48812C10.518 8.75212 10.386 9.13212 10.386 9.62812V13.6001C10.386 14.0961 10.518 14.4801 10.782 14.7521C11.054 15.0161 11.426 15.1481 11.898 15.1481C12.37 15.1481 12.734 15.0161 12.99 14.7521C13.254 14.4801 13.386 14.0961 13.386 13.6001H14.466C14.466 14.3761 14.234 14.9921 13.77 15.4481C13.306 15.8961 12.682 16.1201 11.898 16.1201Z" fill="var(--color-text)"></path></g></svg><span>Network<wbr/>Connection</span></a></li></ul></div></details></li>
 <li><a href="../modules/Networking_NetworkHandler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Networking/<wbr/>Network<wbr/>Handler</span></a></li>
-<li><a href="../modules/Networking_Request.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Networking/<wbr/>Request</span></a></li>
 <li><a href="../modules/Networking_RequestHandler.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Networking/<wbr/>Request<wbr/>Handler</span></a></li>
 <li><a href="../modules/Packets_NetworkingPackets_ErrorCause_enum.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>Error<wbr/>Cause.enum</span></a></li>
 <li><a href="../modules/Packets_NetworkingPackets_NullPacket.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>Null<wbr/>Packet</span></a></li>
@@ -556,6 +589,7 @@ into smaller chunks as necessary</p>
 <li><a href="../modules/Packets_NetworkingPackets_RequestError.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>Request<wbr/>Error</span></a></li>
 <li><a href="../modules/Packets_NetworkingPackets_RequestPacket.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>Request<wbr/>Packet</span></a></li>
 <li><a href="../modules/Packets_NetworkingPackets_ResponsePacket.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>Response<wbr/>Packet</span></a></li>
+<li><a href="../modules/Packets_NetworkingPackets_StringPacket.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>String<wbr/>Packet</span></a></li>
 <li><a href="../modules/Packets_NetworkingPackets_TransferWrapper.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Networking<wbr/>Packets/<wbr/>Transfer<wbr/>Wrapper</span></a></li>
 <li><a href="../modules/Packets_PacketManager.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Packet<wbr/>Manager</span></a></li>
 <li><a href="../modules/Packets_SamplePacket.html"><svg class="tsd-kind-icon" viewBox="0 0 24 24"><use href="#icon-4"></use></svg><span>Packets/<wbr/>Sample<wbr/>Packet</span></a></li>

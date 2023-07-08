@@ -8,6 +8,9 @@ import { ResponsePacket } from "./NetworkingPackets/ResponsePacket";
 import { RequestError } from "./NetworkingPackets/RequestError";
 import { Payload } from "./NetworkingPackets/Payload";
 import { StringPacket } from "./NetworkingPackets/StringPacket";
+import { StreamRequest } from "./NetworkingPackets/StreamRequest";
+import { StreamData } from "./NetworkingPackets/StreamData";
+import { AckPacket } from "./NetworkingPackets/AckPacket";
 
 type ClassIdPair = {
     cls: new () => Serializable,
@@ -32,6 +35,9 @@ export class PacketManager{
         this._addPacket(RequestError,           60_006);
         this._addPacket(Payload,                60_007);
         this._addPacket(StringPacket,           60_008);
+        this._addPacket(StreamRequest,          60_009);
+        this._addPacket(StreamData,             60_010);
+        this._addPacket(AckPacket,              60_011);
 
         this.checkRepeatedIndices();
     }

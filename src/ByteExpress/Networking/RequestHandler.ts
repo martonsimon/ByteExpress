@@ -177,6 +177,11 @@ export class RequestHandler{
             if (req.completed)
                 this.outboundRequests.splice(i, 1);
         }
+        for (let i = this.inboundRequests.length - 1; i >= 0; i--){
+            let req = this.inboundRequests[i];
+            if (req.completed)
+                this.inboundRequests.splice(i, 1);
+        }
     }
     private abortRequest(requestId: number, outbound: boolean = true){
         if (outbound){

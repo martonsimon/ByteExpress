@@ -59,6 +59,11 @@ export class Payload extends Serializable{
 
         return packet;
     }
+    /**
+     * Takes a packet and sets it's variables accordingly
+     * @param packetManager 
+     * @param packet 
+     */
     public fromPacket(packetManager: PacketManager, packet: Serializable | undefined){
         let payload = packet ? packet : new NullPacket();
         let id = packetManager.getIdByInstance(payload, true);

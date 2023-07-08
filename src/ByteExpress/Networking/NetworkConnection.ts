@@ -9,6 +9,8 @@ import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestC
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 import { Observable } from "rxjs";
+import { ErrorCallback, FinalCallback, StreamCallback, StreamCallbackHandler, StreamHandler } from "./StreamHandler";
+import { NullPacket } from "../Packets/NetworkingPackets/NullPacket";
 
 /**
  * Manages and track the state of each connection,
@@ -41,6 +43,7 @@ export class NetworkConnection{
     private requiredPacketLength: number; //required bytes to create a packet, if -1 then it cannot be determined
     private packetBuffers: Array<PacketBuffer>; //Buffers packets for each individual chunk, but not for a fragmented incoming data.
     private requestHandler: RequestHandler; //handler class for managing request and events
+    private streamHandler: StreamHandler; //handler class for managing streams
 
     constructor(
         id: number,
@@ -76,6 +79,10 @@ export class NetworkConnection{
             this.packetManager,
             this,
         );
+        this.streamHandler = new StreamHandler(
+            this.packetManager,
+            this,
+        );
 
         this.checkPayloadRestrictions();
     }
@@ -88,6 +95,9 @@ export class NetworkConnection{
      * @returns false if failed (e.g buffer is full)
      */
     public sendPacket(packet: Serializable, placeAtBeginning: boolean = false, flush: boolean = false): boolean{
+        return this._sendPacket(packet, placeAtBeginning, flush, false);
+    }
+    private _sendPacket(packet: Serializable, placeAtBeginning: boolean = false, flush: boolean = false, ack: boolean): boolean{
          let data = packet.toBytes();
          let length = data.getLength();
          let packetId = this.packetManager.getIdByInstance(packet);
@@ -110,6 +120,7 @@ export class NetworkConnection{
                 let toRead = Math.min(allowedPayload, data.getRemainingAmount());
                 let fragmentData = data.read(toRead);
                 let wrapper = new TransferWrapper();
+                wrapper.flags.ack = ack;
                 wrapper.flags.chunked_packet = true;
                 wrapper.flags.last_chunk = lastChunk;
                 wrapper.packet_sequence = sequence;
@@ -124,6 +135,7 @@ export class NetworkConnection{
          else{
             //else just wrap it
             let wrapper = new TransferWrapper();
+            wrapper.flags.ack = ack;
             wrapper.packet_id = packetId;
             wrapper.payload_length = length;
             wrapper.payload = data.readAll()!;
@@ -144,11 +156,11 @@ export class NetworkConnection{
             this.outboundQueue.push(packet);
     }
     private flushOutboundQueue(flushImmediately: boolean = false){
-        if (this.sendTimeout && !flushImmediately)
+        if (this.sendTimeout)
             return;
         if (this.outboundQueue.length == 0)
             return;
-        if (this.waitingForAck() && !flushImmediately)
+        if (this.waitingForAck())
             return;
         
         this.packetsDeltaAck++;
@@ -165,6 +177,18 @@ export class NetworkConnection{
             next_sequence: this.nextSequence
         };
         this.outboundCb(this.id, packetData, ctx);
+
+        if (this.sendRate){
+            if (!this.sendTimeout){
+                this.sendTimeout = setTimeout(() => {
+                    this.sendTimeout = undefined;
+                    this.flushOutboundQueue();
+                }, this.sendRate);
+            }
+        }else{
+            this.flushOutboundQueue();
+        }
+        return;
 
         if (this.sendRate){ //set a timeout
             if (this.sendTimeout && flushImmediately) //clear if there is a request must be flushed
@@ -185,6 +209,13 @@ export class NetworkConnection{
         this._processBuffer();
     }
     private _processBuffer(){
+        //NOTE: When testing locally (server and client code in the same
+        //      piece of code), it won't crash despite it may look like this
+        //      method is called recursively. The promises used for requests
+        //      and streams are resolved in the event loop, hence it won't exceed
+        //      the max callstack size
+
+
         //if the total size is known but there isn't enough data
         //wait for more to arrive
         if (this.requiredPacketLength && this.buffer.getBytesWritten() < this.requiredPacketLength)
@@ -226,10 +257,8 @@ export class NetworkConnection{
         }
     }
     private onPacket(packet: Serializable){
-        console.log("[connection received packet]");
-        //console.log(packet.toJson());
-
         this.requestHandler.inboundPacket(packet);
+        this.streamHandler.inboundPacket(packet);
     }
     private onPacketChunk(packet: TransferWrapper){
         //Find existing
@@ -320,6 +349,11 @@ export class NetworkConnection{
         //and resets the number of packets sent
         //since the last request.
 
+        //If the inbound packet is an ACK packet
+        if (packet.flags.ack){
+            this.packetsDeltaAck = 0;
+        }
+
         //If the inbound packet requires ACK and this
         //client is also waiting for ACK, then the conflict
         //must be resolved
@@ -327,19 +361,14 @@ export class NetworkConnection{
             this.sendAck(true);
         else if (packet.flags.require_ack && !this.waitingForAck())
             this.sendAck(false);
-        
-        //If the inbound packet is an ACK packet
-        if (packet.flags.ack){
-            this.packetsDeltaAck = 0;
-        }
     }
     private sendAck(forceSend: boolean){
         //If forceSend, then create the ACK, place it at
         //the front of the queue (if there is), and send it
         //no matter if waitingForAck() is true
         if (forceSend){
-            let ack = TransferWrapper.ACK;
-            this.sendPacket(ack, true, true); //place at the beginning and flush
+            //let ack = TransferWrapper.ACK;
+            this._sendPacket(new NullPacket(), true, true, true); //place at the beginning and flush
         }
 
         //If forceSend is false, then mark the first
@@ -350,7 +379,7 @@ export class NetworkConnection{
             if (packet)
                 packet.flags.ack = true;
             else
-                this.sendPacket(TransferWrapper.ACK, true, false); //place at the beginning but do not flush immediately
+                this._sendPacket(new NullPacket(), true, false, true); //place at the beginning but do not flush immediately
         }
     }
 
@@ -375,6 +404,12 @@ export class NetworkConnection{
     }
     public onEvent(endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         return this.requestHandler.onEvent(endpoint, callback);
+    }
+    public stream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{
+        return this.streamHandler.stream(endpoint, callback, errorCallback, finalCallback);
+    }
+    public onStream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): CallbackHandlerElement<string, StreamCallbackHandler>{
+        return this.streamHandler.onStream(endpoint, callback, errorCallback, finalCallback);
     }
 }
 

@@ -4,6 +4,7 @@ import { Serializable } from "../Serialization/Serializable";
 import { NetworkConnection } from "./NetworkConnection";
 import { CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, iRequestContext } from "./RequestHandler";
 import { Observable } from "rxjs";
+import { ErrorCallback, FinalCallback, StreamCallback, StreamCallbackHandler } from "./StreamHandler";
 
 //Callback type for outbound data
 export type Callback = (id: number, data: Uint8Array, ctx?: CallbackContext) => void;
@@ -131,6 +132,14 @@ export class NetworkHandler{
     public onEvent(connectionId: number, endpoint: string, callback: CallbackHandlerCb): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.onEvent(endpoint, callback);
+    }
+    public stream(connectionId: number, endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{
+        let connection = this.connections.find(e => e.id == connectionId);
+        connection!.stream(endpoint, callback, errorCallback, finalCallback);
+    }
+    public onStream(connectionId: number, endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): CallbackHandlerElement<string, StreamCallbackHandler>{
+        let connection = this.connections.find(e => e.id == connectionId);
+        return connection!.onStream(endpoint, callback, errorCallback, finalCallback);
     }
 
 

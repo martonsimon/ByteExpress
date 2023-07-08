@@ -57,4 +57,8 @@ describe('Testing PacketManager class', () => {
     test('Get ID by instance', () => {
         expect(packetManager.getIdByInstance(instance1)).toBe(1);
     });
+
+    test('Duplicate networking packets', () => {
+        expect(packetManager.checkRepeatedIndices()).not.toThrow();
+    });
 });
