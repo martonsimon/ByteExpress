@@ -1,5 +1,3 @@
-import { ByteExpressClient } from "./src/ByteExpress/ByteExpressClient";
-import { ByteExpressServer } from "./src/ByteExpress/ByteExpressServer";
 import { ByteStream } from "./src/ByteExpress/ByteStream/ByteStream";
 import { ByteStreamReader } from "./src/ByteExpress/ByteStream/ByteStreamReader";
 import { CallbackContext, NetworkHandler } from "./src/ByteExpress/Networking/NetworkHandler";
@@ -18,6 +16,7 @@ import { TestPacket1 } from "./src/ByteExpress/Packets/TestPackets/TestPacket1";
 import { Serializable } from "./src/ByteExpress/Serialization/Serializable";
 import { of, pipe, from, Observable, Observer, Subject, Subscriber, concat, TeardownLogic, PartialObserver, Subscription } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
+import { ByteExpressClient, ByteExpressServer } from "./src/ByteExpress";
 
 const world = 'world';
 
