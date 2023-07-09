@@ -1,6 +1,6 @@
 {
   "name": "byte-express",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "main": "src/ByteExpress/index.js",
   "types": "build/ByteExpress/index.d.ts",
   "author": "martonsimon",
@@ -10,7 +10,7 @@
     "url": "https://github.com/martonsimon/ByteExpress.git#ts_dev"
   },
   "description": "A description",
-  "files": ["build/**/*"],
+  "files": ["build/src/ByteExpress/**/*"],
   "devDependencies": {
     "@types/jest": "^29.5.2",
     "@types/node": "^14.11.2",
