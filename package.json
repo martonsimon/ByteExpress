@@ -1,4 +1,14 @@
 {
+  "name": "byte-express",
+  "version": "1.0.0",
+  "main": "src/ByteExpress/index.js",
+  "author": "martonsimon",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/martonsimon/ByteExpress.git#ts_dev"
+  },
+  "description": "",
   "devDependencies": {
     "@types/jest": "^29.5.2",
     "@types/node": "^14.11.2",

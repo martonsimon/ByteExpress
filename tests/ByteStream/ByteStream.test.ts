@@ -1,4 +1,3 @@
-import { hello } from "../..";
 import { ByteStream } from "../../src/ByteExpress/ByteStream/ByteStream";
 import { ByteStreamConfiguration } from "../../src/ByteExpress/ByteStream/ByteStreamConfiguration";
 import { ByteStreamReader } from "../../src/ByteExpress/ByteStream/ByteStreamReader";
