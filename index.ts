@@ -1,241 +1,109 @@
+import { ByteExpressClient } from "./src/ByteExpress/ByteExpressClient";
+import { ByteExpressServer } from "./src/ByteExpress/ByteExpressServer";
+
 import { ByteStream } from "./src/ByteExpress/ByteStream/ByteStream";
+import { ByteStreamBase } from "./src/ByteExpress/ByteStream/ByteStreamBase";
+import { ByteStreamConfiguration } from "./src/ByteExpress/ByteStream/ByteStreamConfiguration";
 import { ByteStreamReader } from "./src/ByteExpress/ByteStream/ByteStreamReader";
-import { CallbackContext, NetworkHandler } from "./src/ByteExpress/Networking/NetworkHandler";
+import { ByteStreamWriter } from "./src/ByteExpress/ByteStream/ByteStreamWriter";
+
+import { ByteUtils } from "./src/ByteExpress/ByteUtils/ByteUtils";
+import { Flags } from "./src/ByteExpress/ByteUtils/Flags";
+
+import { NetworkConnection } from "./src/ByteExpress/Networking/NetworkConnection";
+import { NetworkHandler } from "./src/ByteExpress/Networking/NetworkHandler";
+import { RequestHandler } from "./src/ByteExpress/Networking/RequestHandler";
+import { StreamHandler } from "./src/ByteExpress/Networking/StreamHandler";
+import { NetworkSettings } from "./src/ByteExpress/Networking/NetworkHandler";
+import { HandlerSettings } from "./src/ByteExpress/Networking/RequestHandler";
+import { CallbackHandler } from "./src/ByteExpress/Networking/RequestHandler";
+import { CallbackHandlerElement } from "./src/ByteExpress/Networking/RequestHandler";
+import { CallbackContext } from "./src/ByteExpress/Networking/NetworkHandler";
+import { iRequest } from "./src/ByteExpress/Networking/RequestHandler";
+import { RequestSettings } from "./src/ByteExpress/Networking/RequestHandler";
+import { RequestPacketInformation } from "./src/ByteExpress/Networking/RequestHandler";
+import { Request } from "./src/ByteExpress/Networking/RequestHandler";
+import { iResponse } from "./src/ByteExpress/Networking/RequestHandler";
+import { Response } from "./src/ByteExpress/Networking/RequestHandler";
+import { iRequestContext } from "./src/ByteExpress/Networking/RequestHandler";
+import { RequestContext } from "./src/ByteExpress/Networking/RequestHandler";
+import { RequestClosed } from "./src/ByteExpress/Networking/RequestHandler";
+import { StreamSettings } from "./src/ByteExpress/Networking/StreamHandler";
+import { StreamPacketInfo } from "./src/ByteExpress/Networking/StreamHandler";
+import { iStream } from "./src/ByteExpress/Networking/StreamHandler";
+import { Stream } from "stream";
+import { StreamClosed } from "./src/ByteExpress/Networking/StreamHandler";
+
+import { AckPacket } from "./src/ByteExpress/Packets/NetworkingPackets/AckPacket";
+import { BytesPacket } from "./src/ByteExpress/Packets/NetworkingPackets/BytesPacket";
 import { ErrorCause } from "./src/ByteExpress/Packets/NetworkingPackets/ErrorCause.enum";
 import { NullPacket } from "./src/ByteExpress/Packets/NetworkingPackets/NullPacket";
+import { NumberPacket } from "./src/ByteExpress/Packets/NetworkingPackets/NumberPacket";
 import { Payload } from "./src/ByteExpress/Packets/NetworkingPackets/Payload";
 import { RequestError } from "./src/ByteExpress/Packets/NetworkingPackets/RequestError";
 import { RequestPacket } from "./src/ByteExpress/Packets/NetworkingPackets/RequestPacket";
 import { ResponsePacket } from "./src/ByteExpress/Packets/NetworkingPackets/ResponsePacket";
 import { StreamData } from "./src/ByteExpress/Packets/NetworkingPackets/StreamData";
+import { StreamRequest } from "./src/ByteExpress/Packets/NetworkingPackets/StreamRequest";
 import { StringPacket } from "./src/ByteExpress/Packets/NetworkingPackets/StringPacket";
 import { TransferWrapper } from "./src/ByteExpress/Packets/NetworkingPackets/TransferWrapper";
+import { TestPacket1 } from "./src/ByteExpress/Packets/TestPackets/TestPacket1";
 import { PacketManager } from "./src/ByteExpress/Packets/PacketManager";
 import { SamplePacket } from "./src/ByteExpress/Packets/SamplePacket";
-import { TestPacket1 } from "./src/ByteExpress/Packets/TestPackets/TestPacket1";
 import { Serializable } from "./src/ByteExpress/Serialization/Serializable";
-import { of, pipe, from, Observable, Observer, Subject, Subscriber, concat, TeardownLogic, PartialObserver, Subscription } from 'rxjs';
-import { tap, map } from 'rxjs/operators';
-import { ByteExpressClient, ByteExpressServer } from "./src/ByteExpress";
 
-const world = 'world';
+export {
+    ByteExpressClient,
+    ByteExpressServer,
 
-export function hello(who: string = world): string {
-    return `Hello ${who}! `;
-}
+    ByteStream,
+    ByteStreamBase,
+    ByteStreamConfiguration,
+    ByteStreamReader,
+    ByteStreamWriter,
 
-console.log("----------------------------");
-console.log("Application started!");
+    ByteUtils,
+    Flags,
 
-export function clientOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
-    server.inboundData(0, data);
-}
-export function serverOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
-    client.inboundData(0, data);
-}
+    NetworkConnection,
+    NetworkHandler,
+    RequestHandler,
+    StreamHandler,
+    NetworkSettings,
+    HandlerSettings,
+    CallbackHandler,
+    CallbackHandlerElement,
+    CallbackContext,
+    iRequest,
+    RequestSettings,
+    RequestPacketInformation,
+    Request,
+    iResponse,
+    Response,
+    iRequestContext,
+    RequestContext,
+    RequestClosed,
+    StreamSettings,
+    StreamPacketInfo,
+    iStream,
+    Stream,
+    StreamClosed,
 
-let client = new ByteExpressClient(clientOutbound);
-let server = new ByteExpressServer(serverOutbound);
-
-client.connect();
-server.connectClient(0);
-
-client.packetManager.addPacket(SamplePacket, 0);
-
-server.onRequest(StringPacket, ctx => {
-    console.log("Request received");
-
-    let packet = ctx.req.payload as StringPacket;
-    console.log(packet.text); // logs "Payload"
-
-    ctx.res.write(new StringPacket("Response"));
-});
-
-client.request(new StringPacket("Payload"), true).then(ctx => {
-    console.log("Request sent");
-
-    let response = ctx.res.payload as StringPacket;
-    console.log(response.text); // logs "Response"
-}).catch(ctx => {
-    console.log("Error")
-});
-
-server.onStream("api/test", async stream => {
-
-});
-
-server.onStream("api/test", async stream => {
-    console.log(await stream.readString());
-    console.log(await stream.readString());
-
-    stream.sendString("response 1");
-    stream.sendString("response 2");
-});
-client.stream("api/test", async stream => {
-    stream.sendString("First message");
-    stream.sendString("Second message");
-    stream.sendPacket(new StringPacket("A packet"));
-    stream.sendNumber(255, 1);
-    stream.sendString("A string");
-    stream.sendBytes(new Uint8Array([1, 2, 3, 4, 5]));
-    stream.sendAck();
-    await stream.readPacket(StringPacket);
-    await stream.readNumber();
-    await stream.readString();
-    await stream.readBytes();
-    await stream.readAck();
-
-    console.log(await stream.readString());
-    console.log(await stream.readString());
-});
-client.stream("api/test", async stream => {
-    //logic
-}, (stream, err) => {
-    //error
-}, stream => {
-    //complete
-});
-
-
-
-
-
-
-/*
-export function outboundCb1(id: number, data: Uint8Array, ctx?: CallbackContext){
-    //console.log(`[client]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
-    //console.log(ctx?.original_packet.toJson());
-    networkServer.inboundData(0, data);
-}
-export function outboundCb2(id: number, data: Uint8Array, ctx?: CallbackContext){
-    //console.log(`[server]: Received data to be sent for connection ID = ${id}, data (${data.length}): ${data}`);
-    //console.log(ctx?.original_packet.toJson());
-    networkClient.inboundData(0, data);
-}*/
-/*
-let networkClient = new NetworkHandler(outboundCb1, {
-    maxPacketSize: 255,
-    connectionSendRate: 0,
-});
-networkClient.connectClient(0);
-let networkServer = new NetworkHandler(outboundCb2, {
-    maxPacketSize: 255,
-    connectionSendRate: 0,
-});*/
-/*networkServer.connectClient(0);
-
-let testPacket1 = new TestPacket1();
-testPacket1.number1 = 2;
-testPacket1.number2 = 3;
-testPacket1.text1 = "packet to send by client";
-
-let testPacket2 = new TestPacket1();
-testPacket2.number1 = 2;
-testPacket2.number2 = 3;
-testPacket2.text1 = "packet to send by server";*/
-
-
-/*
-let handler = networkServer.onRequest(TestPacket1, ctx => {
-    console.log("[server] got a request for TestPacket1");
-    //networkServer.disconnectClient(0);
-    //networkClient.disconnectClient(0);
-    let data = ctx.req.payload as TestPacket1;
-    console.log(data.toJson());
-    ctx.res.end(200);
-});*/
-/*let handler2 = networkServer.onEvent("api/test", ctx => {
-    console.log("[server] got an event request");
-    ctx.res.write(new StringPacket("test1"));
-    ctx.res.write(new StringPacket("test2"));
-    ctx.res.end(200);
-});*/
-/*
-console.log("[client]: sennding request");
-networkClient.request(0, testPacket1, true).then(ctx => {
-    console.log("[client]: resolved request..");
-    console.log(ctx.res.code);
-    console.log(ctx.res.payload!.toJson());
-}).catch(ctx => {
-    console.log("[client] request errored");
-});
-*/
-/*networkClient.eventRequest(0, "api/test", undefined).subscribe({
-    next: ctx => {
-        console.log("[client]: event request");
-        console.log(ctx.res.payload.toJson());  
-        console.log(ctx.res.code);
-    },
-    error: err => {
-        console.log("Error");
-    },
-    complete: () => console.log("complete")
-});*/
-
-/*
-networkServer.onStream("api/test", async stream => {
-    console.log("[server]: got a stream request");
-    let msg = await stream.readPacket(StringPacket);
-    console.log("[server]: received message: " + msg.text);
-    stream.sendAck();
-    msg = await stream.readPacket(StringPacket);
-    console.log("[server]: received message: " + msg.text);
-
-    stream.sendPacket(new StringPacket(`response
-    `));
-
-    for (let i = 0; i < 1_000; i++){
-        let msg = await stream.readPacket(StringPacket);
-        if (i % 100 == 0)
-            console.log(msg.toJson());
-        stream.sendAck();
-    }
-
-    console.log("[server]: receiving a few data types");
-
-    console.log(await stream.readNumber());
-    console.log(await stream.readString());
-    console.log(await stream.readBytes());
-    stream.sendAck();
-
-    console.log("[server]: waiting for packet when connection is aborted");
-    //client won't send number
-    //await stream.readNumber();
-    stream.autoClose = false;
-
-}, (stream, err) => {console.log("[server]: error"); console.log(err)}, () => console.log("[server]: stream done"));
-
-const startTime = process.hrtime.bigint();*/
-/*networkClient.stream(0, "api/test", async stream => {
-    console.log("[client]: stream opened");
-    stream.sendPacket(new StringPacket("first message"));
-    await stream.readAck();
-    stream.sendPacket(new StringPacket("second message"));
-
-    let msg = await stream.readPacket(StringPacket);
-    console.log("[client]: received message: " + msg.text);
-
-    for (let i = 0; i < 1_000; i++){
-        stream.sendPacket(new StringPacket("message " + i));
-        await stream.readAck();
-    }
-
-    console.log("[client]: sending a few data types");
-    console.log("aaaa");
-    stream.sendNumber(10, 2);
-    stream.sendString("Hello"); 
-    stream.sendBytes(new Uint8Array([1, 2, 3, 4, 5]));
-    await stream.readAck();
-
-    console.log("[client]: intentionally closing connection and waiting for values to be read at the server");
-    stream.autoClose = false;
-    //stream.close();
-
-}, (stream, err) => {
-    console.log("[client]: stream error");
-}, stream => {
-    console.log("[client]: stream done");
-    const endTime = process.hrtime.bigint();
-    const executionTimeInMilliseconds = Number(endTime - startTime) / 1_000_000;
-    console.log(`Task executed in ${executionTimeInMilliseconds} milliseconds`); 
-});*/
+    AckPacket,
+    BytesPacket,
+    ErrorCause,
+    NullPacket,
+    NumberPacket,
+    Payload,
+    RequestError,
+    RequestPacket,
+    ResponsePacket,
+    StreamData,
+    StreamRequest,
+    StringPacket,
+    TransferWrapper,
+    TestPacket1,
+    PacketManager,
+    SamplePacket,
+    Serializable,
+};
