@@ -1,7 +1,7 @@
 {
   "name": "byte-express",
   "version": "0.1.1",
-  "main": "src/ByteExpress/index.js",
+  "main": "build/src/ByteExpress/index.js",
   "types": "build/ByteExpress/index.d.ts",
   "author": "martonsimon",
   "license": "ISC",
