@@ -1,0 +1,32 @@
+<h2 class="text-lg font-semibold mb-2">Send large amount of data (example #3)</h2>
+<div>
+  <mat-form-field class="w-full">
+    <mat-label>Data quantity</mat-label>
+    <input matInput type="number" value="16">
+  </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>Unit</mat-label>
+    <mat-select value="1024">
+      <mat-option value="1" selected>bytes</mat-option>
+      <mat-option value="1024">kilobytes</mat-option>
+      <mat-option value="1048576">megabytes</mat-option>
+    </mat-select>
+  </mat-form-field>
+  <mat-form-field class="w-full">
+    <mat-label>Packets per ack</mat-label>
+    <input matInput type="number" value="4">
+  </mat-form-field>
+</div>
+<div class="text-lg">
+  <p>nth stream: <span class="font-bold">0</span></p>
+  <p class="text-orange-400">in process...</p>
+  <p class="text-green-700">done</p>
+  <p class="text-red-700">error</p>
+  <p>time: <span class="font-bold">12 ms</span></p>
+  <p>avg speed: <span class="font-bold">2 Mbit/s</span></p>
+  <p>bytes sent: <span class="font-bold">20</span></p>
+</div>
+<div>
+  <button mat-flat-button color="primary" class="w-full md:w-fit px-4 mb-1 md:mr-1">Send</button>
+  <button mat-flat-button color="warn" class="w-full md:w-fit px-4 mb-1 md:mr-1">Cancel</button>
+</div>

@@ -1,3 +1,9 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+@layer components {
+    .card{
+        @apply container max-w-5xl mx-auto rounded bg-stone-50 border border-gray-200 shadow-sm p-2 text-xl mb-16;
+    }
+}

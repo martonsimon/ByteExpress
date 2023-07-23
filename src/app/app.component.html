@@ -1,12 +1,21 @@
-<h1 class="text-3xl font-bold underline bg-red-200">
-  Hello world!
-  Modify the background and the color will change
-</h1>
-<button mat-button>Basic</button>
-<button mat-button color="primary">Primary</button>
-<button mat-button color="accent">Accent</button>
-<button mat-raised-button color="primary">Primary</button>
-<button mat-raised-button color="accent">Accent</button>
-<button mat-raised-button color="warn">Warn</button>
+<div class="bg-stone-100 w-full min-h-full p-2">
+  <h1 class="text-4xl font-bold mt-2">ByteExpress test site</h1>
+  <p class="text-lg font-thin  md:w-2/5">You can test the functionality, speed and usage of the ByteExpress library. Don't forget to install the server as well</p>
+  <hr class="w-5/6 mx-auto my-2">
 
-<mat-spinner></mat-spinner>
+  <div class="card">
+    <h2 class="text-2xl font-semibold mb-2">Connection</h2>
+    <p class="text-lg">Connection status:
+      <span class="font-bold text-green-700">connected</span>
+      <span class="font-bold text-red-700">disconnected</span>
+      <span class="font-bold text-orange-700">connecting...</span>
+    </p>
+    <button mat-stroked-button color="primary" style="color: green;" class="px-2 mr-2 w-full mb-1 md:w-fit md:mb-0">Connect</button>
+    <button mat-stroked-button color="primary" style="color: red;" class="px-2 mr-2 w-full mb-1 md:w-fit md:mb-0">Disconnect</button>
+  </div>
+
+  <div class="card"> <app-example1></app-example1> </div>
+  <div class="card"> <app-example2></app-example2> </div>
+  <div class="card"> <app-example3></app-example3> </div>
+  <div class="card"> <app-example4></app-example4> </div>
+</div>
