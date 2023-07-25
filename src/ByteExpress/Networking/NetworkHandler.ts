@@ -8,12 +8,12 @@ import { Observable } from "rxjs";
 import { ErrorCallback, FinalCallback, StreamCallback, StreamCallbackHandler } from "./StreamHandler";
 
 //Callback type for outbound data
-export type Callback = (id: number, data: Uint8Array, ctx?: CallbackContext) => void;
+export type Callback = (id: number | string, data: Uint8Array, ctx?: CallbackContext) => void;
 //For debug purposes
 export type CallbackContext = {
     original_packet: TransferWrapper,
 
-    connection_id: number,
+    connection_id: number | string,
     last_sent_at: number,
     packets_delta_ack: number,
     max_single_packet_payload: number,
@@ -114,7 +114,7 @@ export class NetworkHandler{
         else
             bytes = data;
         this.logger.trace("indboundData Handler received ", bytes.length, " bytes of inboundData (connection: ", id, " original type: ", typeof data, "), bytes: ", bytes.toString());
-        let connection = this.connections.find(e => e.id == id);
+        let connection = this.connections.find(e => e.id === id);
         connection?.inboundData(bytes);
     }
 
@@ -132,7 +132,7 @@ export class NetworkHandler{
      * Call when a new client is connected
      * @param id Client ID
      */
-    public connectClient(id: number){
+    public connectClient(id: number | string){
         this.logger.trace("connectClient, id: ", id);
         let connection = new NetworkConnection(
             this.logger,
@@ -148,35 +148,35 @@ export class NetworkHandler{
      * Call when a client is disconnected
      * @param id Client ID
      */
-    public disconnectClient(id: number){
+    public disconnectClient(id: number | string){
         this.logger.trace("disconnectClient, id: ", id);
-        let connection = this.connections.find(e => e.id == id);
+        let connection = this.connections.find(e => e.id === id);
         this.connections.splice(this.connections.indexOf(connection!), 1);
         connection!.disconnect();
     }
 
-    public request(connectionId: number, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
+    public request(connectionId: number | string, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
         this.logger.trace("request, connectionId: ", connectionId, "expectResponse: ", expectResponse, ", endpointUrl: ", endpointUrl ?? "undefined");
         this.logger.trace("request, packet: ", packet.toJson());
-        let connection = this.connections.find(e => e.id == connectionId);
+        let connection = this.connections.find(e => e.id === connectionId);
         return connection!.request(packet, expectResponse, endpointUrl);
     }
-    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb, connectionId?: number): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+    public onRequest(endpoint: (new () => Serializable) | string, callback: CallbackHandlerCb, connectionId?: number | string): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         let endpointVal: number | string | undefined = Serializable.prototype.isPrototypeOf((endpoint as any).prototype) ? this.packetManager.getIdByCls(endpoint as (new () => Serializable)) : endpoint as string;
         if (!endpointVal)
             throw new Error("Packet must be added to packet manager");
         let handler = this.requestHandlers.addCallback(endpointVal, callback);
         if (connectionId){
-            let connection = this.connections.find(e => e.id == connectionId);
+            let connection = this.connections.find(e => e.id === connectionId);
             return connection!.onRequest(handler);
         }else
             return this.requestHandlers.addCallbackElement(handler);
     }
-    public eventRequest(connectionId: number, endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
-        let connection = this.connections.find(e => e.id == connectionId);
+    public eventRequest(connectionId: number | string, endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
+        let connection = this.connections.find(e => e.id === connectionId);
         return connection!.eventRequest(endpointUrl, payload);
     }
-    public onEvent(endpoint: string, callback: CallbackHandlerCb, connectionId?: number): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+    public onEvent(endpoint: string, callback: CallbackHandlerCb, connectionId?: number | string): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
         let handler = this.requestHandlers.addCallback(endpoint, callback);
         if (connectionId){
             let connection = this.connections.find(e => e.id == connectionId);
@@ -185,18 +185,18 @@ export class NetworkHandler{
         else
             return handler;
     }
-    public stream(connectionId: number, endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{
-        let connection = this.connections.find(e => e.id == connectionId);
+    public stream(connectionId: number | string, endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{
+        let connection = this.connections.find(e => e.id === connectionId);
         connection!.stream(endpoint, callback, errorCallback, finalCallback);
     }
-    public onStream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback, connectionId?: number): CallbackHandlerElement<string, StreamCallbackHandler>{
+    public onStream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback, connectionId?: number | string): CallbackHandlerElement<string, StreamCallbackHandler>{
         let handler = this.streamHandlers.addCallback(endpoint, {
             cb: callback,
             err: errorCallback,
             final: finalCallback,
         });
         if (connectionId){
-            let connection = this.connections.find(e => e.id == connectionId);
+            let connection = this.connections.find(e => e.id === connectionId);
             return connection!.onStream(handler);
         }
         else

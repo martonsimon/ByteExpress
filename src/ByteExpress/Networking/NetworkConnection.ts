@@ -22,7 +22,7 @@ import { NullPacket } from "../Packets/NetworkingPackets/NullPacket";
 export class NetworkConnection{
     //Settings variables
     private readonly logger: Logger<ILogObj>;
-    readonly id: number; //Connection ID / client ID
+    readonly id: number | string; //Connection ID / client ID
     readonly maxPacketSize: number; //Max size for an outbound message (including the wrapper)
     readonly sendRate: number; //Amount of time to wait between sending packets. 0 to disable
     readonly packetsPerAck: number; //Number of consecutive packets after which an ACK is required
@@ -49,7 +49,7 @@ export class NetworkConnection{
 
     constructor(
         logger: Logger<ILogObj>,
-        id: number,
+        id: number | string,
         maxPacketSize: number,
         sendRate: number,
         packetsPerAck: number,

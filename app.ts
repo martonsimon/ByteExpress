@@ -12,13 +12,13 @@ export function hello(who: string = world): string {
 console.log("----------------------------");
 console.log("Application started!");
 
-export function clientOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
+export function clientOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //server.inboundData(0, data);
     setImmediate(() => {
         server.inboundData(0, data);
     });
 }
-export function serverOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
+export function serverOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //client.inboundData(0, data);
     setImmediate(() => {
         client.inboundData(0, data);

@@ -71,7 +71,7 @@ Note: ByteExpress is just a wrapper that encapsulates communication, so that it 
 like TCP/IP or WebSockets. For a full, working example, see: [link]
 ### For clients
 ```typescript
-export function clientOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
+export function clientOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //Just send data over your TCP/IP connection directly to your server
     //Note: id is 0 in case of clients
 }
@@ -83,7 +83,7 @@ client.connect();
 ```
 ### For servers
 ```typescript
-export function serverOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
+export function serverOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //Just send data over your TCP/IP connection directly to your
     //client who is identified by "id"
 

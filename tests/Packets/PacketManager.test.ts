@@ -59,6 +59,8 @@ describe('Testing PacketManager class', () => {
     });
 
     test('Duplicate networking packets', () => {
-        expect(packetManager.checkRepeatedIndices()).not.toThrow();
+        expect(() => {
+            packetManager.checkRepeatedIndices();
+        }).not.toThrow();
     });
 });
