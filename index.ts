@@ -19,6 +19,7 @@ import { HandlerSettings } from "./src/ByteExpress/Networking/RequestHandler";
 import { CallbackHandler } from "./src/ByteExpress/Networking/RequestHandler";
 import { CallbackHandlerElement } from "./src/ByteExpress/Networking/RequestHandler";
 import { CallbackContext } from "./src/ByteExpress/Networking/NetworkHandler";
+import { BeginCallback } from "./src/ByteExpress/Networking/RequestHandler";
 import { iRequest } from "./src/ByteExpress/Networking/RequestHandler";
 import { RequestSettings } from "./src/ByteExpress/Networking/RequestHandler";
 import { RequestPacketInformation } from "./src/ByteExpress/Networking/RequestHandler";
@@ -74,6 +75,7 @@ export {
     CallbackHandler,
     CallbackHandlerElement,
     CallbackContext,
+    BeginCallback,
     iRequest,
     RequestSettings,
     RequestPacketInformation,

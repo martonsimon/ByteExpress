@@ -6,7 +6,7 @@ import { PacketManager } from "../Packets/PacketManager";
 import { ByteStream } from "../ByteStream/ByteStream";
 import { ByteStreamWriter } from "../ByteStream/ByteStreamWriter";
 import { ByteStreamReader } from "../ByteStream/ByteStreamReader";
-import { CallbackHandler, CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, RequestContext, RequestHandler, iRequestContext } from "./RequestHandler";
+import { BeginCallback, CallbackHandler, CallbackHandlerCb, CallbackHandlerElement, CallbackHandlerKey, CallbacksHandlerCb, RequestContext, RequestHandler, iRequestContext } from "./RequestHandler";
 import { ResponsePacket } from "../Packets/NetworkingPackets/ResponsePacket";
 import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
 import { Observable } from "rxjs";
@@ -57,7 +57,7 @@ export class NetworkConnection{
         streamQueueSize: number,
         outboundCb: Callback,
         packetManager: PacketManager,
-        globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>,
+        globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbacksHandlerCb>,
         globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>,
         networkSettings?: NetworkSettings
     ){
@@ -444,13 +444,13 @@ export class NetworkConnection{
     public request(packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
         return this.requestHandler.request(packet, expectResponse, endpointUrl);
     }
-    public onRequest(handler: CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+    public onRequest(handler: CallbackHandlerElement<CallbackHandlerKey, CallbacksHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbacksHandlerCb>{
         return this.requestHandler.onRequest(handler);
     }
-    public eventRequest(endpointUrl: string, payload: Serializable | undefined): Observable<iRequestContext>{
-        return this.requestHandler.eventRequest(endpointUrl, payload);
+    public eventRequest(endpointUrl: string, payload: Serializable | undefined, onBeginCb?: BeginCallback): Observable<iRequestContext>{
+        return this.requestHandler.eventRequest(endpointUrl, payload, onBeginCb);
     }
-    public onEvent(handler: CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbackHandlerCb>{
+    public onEvent(handler: CallbackHandlerElement<CallbackHandlerKey, CallbacksHandlerCb>): CallbackHandlerElement<CallbackHandlerKey, CallbacksHandlerCb>{
         return this.requestHandler.onEvent(handler);
     }
     public stream(endpoint: string, callback: StreamCallback, errorCallback?: ErrorCallback, finalCallback?: FinalCallback): void{

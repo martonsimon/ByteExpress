@@ -1,6 +1,6 @@
 import { of, pipe, from, Observable, Observer, Subject, Subscriber, concat, TeardownLogic, PartialObserver, Subscription } from 'rxjs';
 import { tap, map } from 'rxjs/operators';
-import { ByteExpressClient, ByteExpressServer, ByteStream, ByteStreamReader, NetworkHandler, NullPacket, Payload, StringPacket, SamplePacket, Serializable, CallbackContext } from "./index"; 
+import { ByteExpressClient, ByteExpressServer, ByteStream, ByteStreamReader, NetworkHandler, NullPacket, Payload, StringPacket, SamplePacket, Serializable, CallbackContext, RequestContext, iRequestContext } from "./index"; 
 
 const world = 'world';
 
@@ -63,7 +63,35 @@ export function ping(nthTimes: number){
         console.log("Error")
     });
 }
-ping(4);
+//ping(4);
+
+server.onEvent("event", ctx => {
+    console.log("[server] got an event request");
+    ctx.res.write(new StringPacket("test1"));
+    ctx.res.write(new StringPacket("test2"));
+    setTimeout(() => {
+        if (!ctx.completed)
+            ctx.res.write(new StringPacket("test3")); 
+    }, 200);
+    //ctx.res.end(200);
+}, (ctx) => {
+    console.log("[server] event request closed");
+});
+let eventCtx: iRequestContext | undefined;
+client.eventRequest("event", undefined, (ctx) => {console.log("got ctx"); eventCtx = ctx;}).subscribe({
+    next: ctx => {
+        console.log("[client]: event " + (ctx.res.payload as StringPacket).text);
+    },
+    error: err => {
+        console.log("Error");
+    },
+    complete: () => console.log("complete")
+});
+setTimeout(() => {
+    //server.disconnectClient(0);
+    //client.disconnect();
+}, 200);
+eventCtx?.req.close();
 
 /*
 server.onStream("api/test", async stream => {
