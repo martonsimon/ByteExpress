@@ -18,6 +18,7 @@ export class StreamData extends Serializable{
     setPayload(packet: Serializable){ this.payload.fromPacket(this.packetManager, packet); }
     toJson(): object{
         let obj = {
+            __name: "StreamData",
             flags: {
                 raw: this.flags.getByte(),
                 sender_initiated_stream: this.flags.sender_initiated_stream,

@@ -44,6 +44,7 @@ export class TransferWrapper extends Serializable{
 
     constructor(){
         super();
+        this.requirePacketManager = true;
         this.flags = new TransferWrapperFlags();
         this.packet_sequence = 0;
         this.chunk_id = 0;
@@ -53,18 +54,29 @@ export class TransferWrapper extends Serializable{
         this.totalPacketLength = -1;
     }
     toJson(): object{
+        let payloadTypeCls: string | undefined = this.hasPacketManager ? this.packetManager.getClsById(this.packet_id, true)?.name : undefined;
+        let payloadObjText: string | object = "<undefined>";
+        if (this.hasPacketManager){
+            const payloadObj: Serializable = new (this.packetManager.getClsById(this.packet_id, true)!)();
+            payloadObj.packetManager = payloadObj.requirePacketManager ? this.packetManager : undefined;
+            payloadObjText = payloadObj.toJson();
+        }
+
         const obj = {
-            flags: [
-                {raw: this.flags.getByte()},
-                {ack: this.flags.ack},
-                {require_ack: this.flags.require_ack},
-                {chunked_packet: this.flags.chunked_packet},
-            ],
+            __name: "TransferWrapper",
+            flags: {
+                raw: this.flags.getByte(),
+                ack: this.flags.ack,
+                require_ack: this.flags.require_ack,
+                chunked_packet: this.flags.chunked_packet,
+            },
             packet_sequence: this.packet_sequence,
             chunk_id: this.chunk_id,
             packet_id: this.packet_id,
             payload_length: this.payload_length,
-            payload: this.payload,
+            payload: this.payload.toString(),
+            __payloadCls: payloadTypeCls,
+            __payloadObj: payloadObjText,
         };
         return obj;
     }

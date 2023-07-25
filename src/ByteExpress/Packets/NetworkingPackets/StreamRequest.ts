@@ -13,6 +13,7 @@ export class StreamRequest extends Serializable{
     constructor(){ super(); }
     toJson(): object{
         let obj = {
+            __name: "StreamRequest",
             endpoint: this.endpoint,
             streamId: this.streamId,
         }

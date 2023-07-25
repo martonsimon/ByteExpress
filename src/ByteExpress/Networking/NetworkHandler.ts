@@ -1,3 +1,4 @@
+import { Logger, ILogObj } from 'tslog';
 import { TransferWrapper } from "../Packets/NetworkingPackets/TransferWrapper";
 import { PacketManager } from "../Packets/PacketManager";
 import { Serializable } from "../Serialization/Serializable";
@@ -24,6 +25,13 @@ export type NetworkSettings = {
     maxPacketSize?: number,
     connectionSendRate?: number,
     connectionPacketsPerAck?: number,
+    requestTimeout?: number,
+    /**
+     * 0: silly, 1: trace, 2: debug, 3: info, 4: warn, 5: error, 6: fatal
+     */
+    logLevel?: number,
+    debugPrefix?: string,
+    logToFile?: boolean,
     requestQueueSize?: number,
     streamQueueSize?: number,
 };
@@ -43,6 +51,7 @@ export class NetworkHandler{
 
     //Settings for outbound
     private outboundCallback: Callback;
+    private requestTimeout: number;
     
     //Settings common
     private requestQueueSize: number;
@@ -55,6 +64,13 @@ export class NetworkHandler{
     private readonly _packetManager: PacketManager; //a packet manager instance passed along the entire execution of the network instance
     private readonly encoder = new TextEncoder();
     private readonly decoder = new TextDecoder();
+    private readonly networkSettings: NetworkSettings | undefined;
+
+    //Debugging
+    private logLevel: number;
+    private debugPrefix: string;
+    private logtoFile: boolean;
+    private readonly logger: Logger<ILogObj>;
 
 
     constructor(
@@ -69,6 +85,14 @@ export class NetworkHandler{
         this.connectionPacketsPerAck = networkSettings?.connectionPacketsPerAck ?? 4;
         this.requestQueueSize = networkSettings?.requestQueueSize ?? 128;
         this.streamQueueSize = networkSettings?.streamQueueSize ?? 128;
+        this.requestTimeout = networkSettings?.requestTimeout ?? 5000;
+        this.logLevel = networkSettings?.logLevel ?? 4;
+        this.debugPrefix = networkSettings?.debugPrefix ?? "NetworkHandler";
+        this.logtoFile = networkSettings?.logToFile ?? false;
+
+        //Logging
+        this.logger = new Logger({name: this.debugPrefix, minLevel: this.logLevel});
+        this.logger.info("NetworkHandler init");
 
         //init internal variables
         this._packetManager = new PacketManager();
@@ -89,15 +113,18 @@ export class NetworkHandler{
             bytes = this.encoder.encode(data);
         else
             bytes = data;
+        this.logger.trace("indboundData Handler received ", bytes.length, " bytes of inboundData (connection: ", id, " original type: ", typeof data, "), bytes: ", bytes.toString());
         let connection = this.connections.find(e => e.id == id);
         connection?.inboundData(bytes);
     }
+
     /**
      * Sets the outbound callback that must be sent to the 
      * corresponding connection with given ID.
      * @param callback Callback function
      */
     public outboundDataCb(callback: Callback): void{
+        this.logger.trace("outboundDataCb");
         this.outboundCallback = callback;
     }
 
@@ -106,11 +133,14 @@ export class NetworkHandler{
      * @param id Client ID
      */
     public connectClient(id: number){
+        this.logger.trace("connectClient, id: ", id);
         let connection = new NetworkConnection(
+            this.logger,
             id, this.maxPacketSize, this.connectionSendRate, this.connectionPacketsPerAck,
             this.requestQueueSize, this.streamQueueSize,
             this.outboundCallback, this.packetManager,
             this.requestHandlers, this.streamHandlers,
+            this.networkSettings,
         );
         this.connections.push(connection);
     }
@@ -119,12 +149,15 @@ export class NetworkHandler{
      * @param id Client ID
      */
     public disconnectClient(id: number){
+        this.logger.trace("disconnectClient, id: ", id);
         let connection = this.connections.find(e => e.id == id);
         this.connections.splice(this.connections.indexOf(connection!), 1);
         connection!.disconnect();
     }
 
     public request(connectionId: number, packet: Serializable, expectResponse: boolean, endpointUrl?: string): Promise<iRequestContext>{
+        this.logger.trace("request, connectionId: ", connectionId, "expectResponse: ", expectResponse, ", endpointUrl: ", endpointUrl ?? "undefined");
+        this.logger.trace("request, packet: ", packet.toJson());
         let connection = this.connections.find(e => e.id == connectionId);
         return connection!.request(packet, expectResponse, endpointUrl);
     }

@@ -1,3 +1,4 @@
+import { Logger, ILogObj } from 'tslog';
 import { PacketManager } from "../Packets/PacketManager";
 import { NetworkConnection } from "./NetworkConnection";
 import { Serializable } from "../Serialization/Serializable";
@@ -25,6 +26,7 @@ export type StreamCallbackHandler = {cb: StreamCallback, err?: ErrorCallback, fi
  * them in an async manner with error handling.
  */
 export class StreamHandler{
+    private readonly logger: Logger<ILogObj>;
     private readonly packetManager: PacketManager;
     private readonly connection: NetworkConnection;
 
@@ -37,11 +39,13 @@ export class StreamHandler{
     private globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>;
 
     constructor(
+        logger: Logger<ILogObj>,
         packetManager: PacketManager,
         connection: NetworkConnection,
         globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>,
         streamSettings?: StreamSettings, //optional settings
     ){
+        this.logger = logger;
         this.packetManager = packetManager;
         this.connection = connection;
         this.globalStreamHandlers = globalStreamHandlers;
@@ -162,10 +166,13 @@ export class StreamHandler{
 
     //CONNECTION SPECIFIC
     public onDisconnect(){
+        this.logger.trace("streamHandler aborting streams");
         for (const stream of this.outboundStreams){
+            this.logger.trace("found outbound stream, aborting...");
             stream.abort();
         }
         for (const stream of this.inboundStreams){
+            this.logger.trace("found inbound stream, aborting...");
             stream.abort();
         }
         this.outboundStreams.splice(0, this.outboundStreams.length);

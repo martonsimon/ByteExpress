@@ -45,6 +45,7 @@ export class RequestPacket extends Serializable{
 
     toJson(): object{
         const obj = {
+            __name: "RequestPacket",
             flags: {
                 raw: this.flags.getByte(),
                 endpoint_is_string: this.flags.endpoint_is_string,

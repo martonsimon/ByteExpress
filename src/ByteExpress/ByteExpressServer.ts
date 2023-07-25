@@ -5,6 +5,9 @@ export class ByteExpressServer extends NetworkHandler{
         outboundCallback: Callback,
         networkSettings?: NetworkSettings,
     ){
+        networkSettings = networkSettings ?? {};
+        networkSettings!.debugPrefix ??= "ByteExpressServer";
+
         super(outboundCallback, networkSettings);
     }
 }

@@ -19,9 +19,10 @@ export class Payload extends Serializable{
     }
     toJson(): object{
         const obj = {
+            __name: "Payload",
             packetId: this.packetId,
             payloadLength: this.payloadLength,
-            payload: this.payload,
+            payload: this.payload.toString() + " asd",
         };
         return obj;
     }

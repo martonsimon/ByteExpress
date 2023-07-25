@@ -19,6 +19,7 @@ export class RequestError extends Serializable{
           }
         }
         const obj = {
+            __name: "RequestError",
             cause: this.cause,
             cause_string: stringRepresentation,
         };

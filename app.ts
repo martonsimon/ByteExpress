@@ -4,6 +4,7 @@ import { ByteExpressClient, ByteExpressServer, ByteStream, ByteStreamReader, Net
 
 const world = 'world';
 
+
 export function hello(who: string = world): string {
     return `Hello ${who}! `;
 }
@@ -18,8 +19,8 @@ export function serverOutbound(id: number, data: Uint8Array, ctx?: CallbackConte
     client.inboundData(0, data);
 }
 
-let client = new ByteExpressClient(clientOutbound);
-let server = new ByteExpressServer(serverOutbound);
+let client = new ByteExpressClient(clientOutbound, {debugPrefix: "client", logLevel: 4});
+let server = new ByteExpressServer(serverOutbound, {debugPrefix: "server", logLevel: 4});
 
 client.connect();
 server.connectClient(0);
@@ -30,20 +31,18 @@ server.onRequest(StringPacket, ctx => {
     console.log("Request received");
 
     let packet = ctx.req.payload as StringPacket;
-    console.log(packet.text); // logs "Payload"
+    console.log("content: ", packet.text); // logs "Payload"
 
     ctx.res.write(new StringPacket("Response"));
 });
 
 client.request(new StringPacket("Payload"), true).then(ctx => {
-    console.log("Request sent");
-
     let response = ctx.res.payload as StringPacket;
-    console.log(response.text); // logs "Response"
+    console.log("response: ", response.text); // logs "Response"
 }).catch(ctx => {
     console.log("Error")
 });
-
+/*
 server.onStream("api/test", async stream => {
 
 });
@@ -79,7 +78,7 @@ client.stream("api/test", async stream => {
 }, stream => {
     //complete
 });
-
+*/
 
 
 

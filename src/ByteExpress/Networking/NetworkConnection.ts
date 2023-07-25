@@ -1,4 +1,5 @@
-import { Callback, NetworkHandler, CallbackContext } from "./NetworkHandler";
+import { Logger, ILogObj } from 'tslog';
+import { Callback, NetworkHandler, CallbackContext, NetworkSettings } from "./NetworkHandler";
 import { TransferWrapper } from "../Packets/NetworkingPackets/TransferWrapper";
 import { Serializable } from "../Serialization/Serializable";
 import { PacketManager } from "../Packets/PacketManager";
@@ -20,6 +21,7 @@ import { NullPacket } from "../Packets/NetworkingPackets/NullPacket";
  */
 export class NetworkConnection{
     //Settings variables
+    private readonly logger: Logger<ILogObj>;
     readonly id: number; //Connection ID / client ID
     readonly maxPacketSize: number; //Max size for an outbound message (including the wrapper)
     readonly sendRate: number; //Amount of time to wait between sending packets. 0 to disable
@@ -46,6 +48,7 @@ export class NetworkConnection{
     private streamHandler: StreamHandler; //handler class for managing streams
 
     constructor(
+        logger: Logger<ILogObj>,
         id: number,
         maxPacketSize: number,
         sendRate: number,
@@ -56,7 +59,9 @@ export class NetworkConnection{
         packetManager: PacketManager,
         globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>,
         globalStreamHandlers: CallbackHandler<string, StreamCallbackHandler>,
+        networkSettings?: NetworkSettings
     ){
+        this.logger = logger;
         this.id = id;
         this.maxPacketSize = maxPacketSize;
         this.sendRate = sendRate;
@@ -78,11 +83,14 @@ export class NetworkConnection{
         this.requiredPacketLength = -1;
         this.packetBuffers = new Array<PacketBuffer>();
         this.requestHandler = new RequestHandler(
+            this.logger,
             this.packetManager,
             this,
             globalRequestHandlers,
+            { timeout: networkSettings?.requestTimeout }
         );
         this.streamHandler = new StreamHandler(
+            this.logger,
             this.packetManager,
             this,
             globalStreamHandlers,
@@ -102,9 +110,13 @@ export class NetworkConnection{
         return this._sendPacket(packet, placeAtBeginning, flush, false);
     }
     private _sendPacket(packet: Serializable, placeAtBeginning: boolean = false, flush: boolean = false, ack: boolean): boolean{
+         this.logger.trace("_sendPacket, id: ", this.id, " placeAtBeginning: ", placeAtBeginning, " flush: ", flush, " ack: ", ack);
+         this.logger.trace("packet to send: ", packet.toJson());
+
          let data = packet.toBytes();
-         let length = data.getLength();
+         let length = data.getLength(); 
          let packetId = this.packetManager.getIdByInstance(packet);
+         this.logger.trace("packetId: ", packetId, " length: ", length);
          if (!packetId){
             console.error("Invalid outbound packet. Please set an ID inside PacketManager.ts or add the class using the Networking instance's addPacket method");
             return false;
@@ -115,6 +127,7 @@ export class NetworkConnection{
             //then chop it into smaller pieces
             let sequence = this.nextSequence;
             this.incrementSequence();
+            this.logger.trace("packet needs segmentation, sequence: ", sequence);
 
             let fragments = Math.ceil(length / this.maxSinglePacketPayload);
             for (let i = 0; i < fragments; i++){
@@ -124,6 +137,7 @@ export class NetworkConnection{
                 let toRead = Math.min(allowedPayload, data.getRemainingAmount());
                 let fragmentData = data.read(toRead);
                 let wrapper = new TransferWrapper();
+                wrapper.packetManager = this.packetManager;
                 wrapper.flags.ack = ack;
                 wrapper.flags.chunked_packet = true;
                 wrapper.flags.last_chunk = lastChunk;
@@ -139,6 +153,7 @@ export class NetworkConnection{
          else{
             //else just wrap it
             let wrapper = new TransferWrapper();
+            wrapper.packetManager = this.packetManager;
             wrapper.flags.ack = ack;
             wrapper.packet_id = packetId;
             wrapper.payload_length = length;
@@ -154,12 +169,14 @@ export class NetworkConnection{
      * @param packet Transfer object
      */
     private queuePacket(packet: TransferWrapper, placeAtBeginning: boolean = false){
+        this.logger.trace("queuePacket, id: ", this.id, " placeAtBeginning: ", placeAtBeginning, " packet: ", packet.toJson());
         if (placeAtBeginning)
             this.outboundQueue.unshift(packet);
         else
             this.outboundQueue.push(packet);
     }
     private flushOutboundQueue(flushImmediately: boolean = false){
+        this.logger.trace("flushOutboundQueue, id: ", this.id, " flushImmediately: ", flushImmediately, " sendTimeout defined/active: ", !!this.sendTimeout, " outboundQueue length: ", this.outboundQueue.length, " waitingForAck: ", this.waitingForAck());
         if (this.sendTimeout)
             return;
         if (this.outboundQueue.length == 0)
@@ -168,6 +185,7 @@ export class NetworkConnection{
             return;
         
         this.packetsDeltaAck++;
+        this.logger.trace("new deltaAck: ", this.packetsDeltaAck);
         let packet = this.outboundQueue.shift();
         packet!.flags.require_ack = this.waitingForAck();
         let packetData = packet!.toBytes().readAll()!;
@@ -180,16 +198,20 @@ export class NetworkConnection{
             max_chunked_packet_payload: this.maxChunkedPacketPayload,
             next_sequence: this.nextSequence
         };
+        this.logger.trace("Flushing the following packet: ", packet!.toJson());
         this.outboundCb(this.id, packetData, ctx);
 
         if (this.sendRate){
             if (!this.sendTimeout){
+                this.logger.trace("Send rate is defined and sendTimeout is inactive, setting a new timeout");
                 this.sendTimeout = setTimeout(() => {
+                    this.logger.trace("timeout expired, id: ", this.id);
                     this.sendTimeout = undefined;
                     this.flushOutboundQueue();
                 }, this.sendRate);
             }
         }else{
+            this.logger.trace("No sendRate, trying to flush more");
             this.flushOutboundQueue();
         }
         return;
@@ -209,6 +231,7 @@ export class NetworkConnection{
 
     //METHODS FOR INBOUND
     public inboundData(data: Uint8Array): void{
+        this.logger.trace("Inbound data received by connection with ID: ", this.id);
         this.buffer.write(data);
         this._processBuffer();
     }
@@ -219,6 +242,7 @@ export class NetworkConnection{
         //      and streams are resolved in the event loop, hence it won't exceed
         //      the max callstack size
 
+        this.logger.trace("Processing buffer for connection with ID: ", this.id);
 
         //if the total size is known but there isn't enough data
         //wait for more to arrive
@@ -231,7 +255,9 @@ export class NetworkConnection{
         //try to create a packet
         let stream = this.buffer.toStreamReader();
         let packet = new TransferWrapper();
+        packet.packetManager = this.packetManager;
         let success = packet.fromBytes(stream);
+        this.logger.trace("Tried parsing packet, success: ", success);
 
         //if success, reset buffer, handle packet
         //and try to read the remaining
@@ -349,28 +375,36 @@ export class NetworkConnection{
 
     //ACK RELATIED METHODS
     private handleAck(packet: TransferWrapper){
+        this.logger.trace("Handling ACK for connection with ID: ", this.id);
         //This method handles the inbound requests
         //and resets the number of packets sent
         //since the last request.
 
         //If the inbound packet is an ACK packet
         if (packet.flags.ack){
+            this.logger.trace("Packet is ACK packet");
             this.packetsDeltaAck = 0;
         }
 
         //If the inbound packet requires ACK and this
         //client is also waiting for ACK, then the conflict
         //must be resolved
-        if (packet.flags.require_ack && this.waitingForAck())
+        if (packet.flags.require_ack && this.waitingForAck()) {
+            this.logger.trace("Server and client both waiting for ACK");
             this.sendAck(true);
-        else if (packet.flags.require_ack && !this.waitingForAck())
-            this.sendAck(false);
+        }
+        else if (packet.flags.require_ack && !this.waitingForAck()) {
+            this.logger.trace("Only the other party is waiting for ACK");
+            this.sendAck(false);        
+        }
     }
     private sendAck(forceSend: boolean){
+        this.logger.trace("Sending ACK from connection with ID: ", this.id, " forceSend: ", forceSend);
         //If forceSend, then create the ACK, place it at
         //the front of the queue (if there is), and send it
         //no matter if waitingForAck() is true
         if (forceSend){
+            this.logger.trace("Sending an empty new packet");
             //let ack = TransferWrapper.ACK;
             this._sendPacket(new NullPacket(), true, true, true); //place at the beginning and flush
         }
@@ -379,6 +413,7 @@ export class NetworkConnection{
         //element in the queue as an ACK, or create an ACK
         //and queue it
         if (!forceSend){
+            this.logger.trace("Modifying the first element in the queue to be an ACK");
             let packet = this.outboundQueue[0];
             if (packet)
                 packet.flags.ack = true;
@@ -397,6 +432,7 @@ export class NetworkConnection{
 
     //CONNECTION
     public disconnect(){
+        this.logger.trace("connection disconnect with ID: ", this.id);
         this.requestHandler.onDisconnect();
         this.streamHandler.onDisconnect();
     }

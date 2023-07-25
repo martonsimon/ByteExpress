@@ -1,3 +1,4 @@
+import { Logger, ILogObj } from 'tslog';
 import { PacketManager } from "../Packets/PacketManager";
 import { NetworkConnection } from "./NetworkConnection";
 import { RequestPacket } from "../Packets/NetworkingPackets/RequestPacket";
@@ -9,7 +10,7 @@ import { Subject, Observable, of, pipe, from, Observer } from 'rxjs';
 import { emitKeypressEvents } from "readline";
 
 export type HandlerSettings = { //Optional settings for requests
-    timeout: number, //timeout in ms
+    timeout?: number, //timeout in ms
 };
 export type CallbackHandlerKey = (number | string); //key used when sending and receiving requests
 export type CallbackHandlerCb = ((ctx: RequestContext) => void); //type to be returned when a request / response arrives
@@ -19,6 +20,7 @@ export type CallbackHandlerCb = ((ctx: RequestContext) => void); //type to be re
  * process of sending and receiving requests.
  */
 export class RequestHandler{
+    private readonly logger: Logger<ILogObj>;
     private readonly packetManager: PacketManager;
     private readonly connection: NetworkConnection;
 
@@ -31,12 +33,14 @@ export class RequestHandler{
     private readonly timeout: number;
 
     constructor(
+        logger: Logger<ILogObj>,
         packetManager: PacketManager,
         networkConnection: NetworkConnection, //the connection where this handler is used
         globalRequestHandlers: CallbackHandler<CallbackHandlerKey, CallbackHandlerCb>,
         requestSettings?: HandlerSettings, //optional settings
     )
     {
+        this.logger = logger;
         this.packetManager = packetManager;
         this.connection = networkConnection;
         this.globalRequestHandlers = globalRequestHandlers;
@@ -219,13 +223,16 @@ export class RequestHandler{
 
     //CONNECTION SPECIFIC METHODS
     public onDisconnect(){
+        this.logger.trace("requestHandler aborting requests");
         //Abort all pending requests
         for (let i = this.outboundRequests.length - 1; i >= 0; i--){
+            this.logger.trace("aborting outbound request...");
             let req = this.outboundRequests[i];
             req.res.abort();
         }
         for (let i = this.inboundRequests.length - 1; i >= 0; i--){
             let req = this.inboundRequests[i];
+            this.logger.trace("aborting inbound request...");
             req.res.abort();
         }
         this.requestHandlers.clear();

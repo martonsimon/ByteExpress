@@ -38,6 +38,7 @@ export class ResponsePacket extends Serializable{
 
     toJson(): object{
         const obj = {
+            __name: "ResponsePacket",
             flags: {
                 raw: this.flags.getByte(),
                 close_connection: this.flags.close_connection,

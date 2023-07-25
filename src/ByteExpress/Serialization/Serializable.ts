@@ -18,6 +18,7 @@ export abstract class Serializable{
     //A few networking class needs access to a packet manager instance
     public requirePacketManager: boolean = false;
     public get packetManager(): PacketManager {if(!this._packetManager){throw new Error("A packet manager instance must be set before using it.");}return this._packetManager;}
+    public get hasPacketManager(): boolean {return this._packetManager !== undefined;}
     public set packetManager(value: PacketManager | undefined){this._packetManager = value;}
     private _packetManager: PacketManager | undefined;
 

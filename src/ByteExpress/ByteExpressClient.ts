@@ -17,6 +17,9 @@ export class ByteExpressClient{
         outboundCallback: Callback,
         networkSettings?: NetworkSettings,
     ){
+        networkSettings = networkSettings ?? {};
+        networkSettings!.debugPrefix ??= "ByteExpressClient";
+
         this.network = new NetworkHandler(outboundCallback, networkSettings);
     }
 
