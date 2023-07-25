@@ -177,11 +177,11 @@ export class NetworkConnection{
     }
     private flushOutboundQueue(flushImmediately: boolean = false){
         this.logger.trace("flushOutboundQueue, id: ", this.id, " flushImmediately: ", flushImmediately, " sendTimeout defined/active: ", !!this.sendTimeout, " outboundQueue length: ", this.outboundQueue.length, " waitingForAck: ", this.waitingForAck());
-        if (this.sendTimeout)
+        if (this.sendTimeout) 
             return;
         if (this.outboundQueue.length == 0)
             return;
-        if (this.waitingForAck())
+        if (this.waitingForAck() && !flushImmediately) //this will cause remaining messages to get stuck, but will be pushed out once the ACK arrives and delta is resetted
             return;
         
         this.packetsDeltaAck++;
@@ -381,9 +381,12 @@ export class NetworkConnection{
         //since the last request.
 
         //If the inbound packet is an ACK packet
+        //reset delta and start flushing the (stuck)
+        //outbound queue
         if (packet.flags.ack){
             this.logger.trace("Packet is ACK packet");
             this.packetsDeltaAck = 0;
+            this.flushOutboundQueue();
         }
 
         //If the inbound packet requires ACK and this

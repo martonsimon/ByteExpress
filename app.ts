@@ -13,17 +13,23 @@ console.log("----------------------------");
 console.log("Application started!");
 
 export function clientOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
-    server.inboundData(0, data);
+    //server.inboundData(0, data);
+    setImmediate(() => {
+        server.inboundData(0, data);
+    });
 }
 export function serverOutbound(id: number, data: Uint8Array, ctx?: CallbackContext){
-    client.inboundData(0, data);
+    //client.inboundData(0, data);
+    setImmediate(() => {
+        client.inboundData(0, data);
+    });
 }
 
 let client = new ByteExpressClient(clientOutbound, {debugPrefix: "client", logLevel: 4});
 let server = new ByteExpressServer(serverOutbound, {debugPrefix: "server", logLevel: 4});
 
 client.connect();
-server.connectClient(0);
+server.connectClient(0); 
 
 client.packetManager.addPacket(SamplePacket, 0);
 
@@ -35,13 +41,30 @@ server.onRequest(StringPacket, ctx => {
 
     ctx.res.write(new StringPacket("Response"));
 });
+server.onRequest("ping", ctx => {
+    console.log("got pinged");
+    ctx.res.end(200);
+});
 
-client.request(new StringPacket("Payload"), true).then(ctx => {
+/*client.request(new StringPacket("Payload"), true).then(ctx => {
     let response = ctx.res.payload as StringPacket;
     console.log("response: ", response.text); // logs "Response"
 }).catch(ctx => {
     console.log("Error")
-});
+});*/
+
+export function ping(nthTimes: number){
+    if (nthTimes == 0)
+        return;
+    client.request(new NullPacket(), true, "ping").then(ctx => {
+        console.log(ctx.res.code);
+        ping(nthTimes - 1);
+    }).catch(ctx => {
+        console.log("Error")
+    });
+}
+ping(4);
+
 /*
 server.onStream("api/test", async stream => {
 

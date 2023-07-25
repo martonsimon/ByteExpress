@@ -43,8 +43,8 @@ export class TransferWrapper extends Serializable{
     private totalPacketLength: number;
 
     constructor(){
-        super();
-        this.requirePacketManager = true;
+        super(); 
+        this.requirePacketManager = true; 
         this.flags = new TransferWrapperFlags();
         this.packet_sequence = 0;
         this.chunk_id = 0;
@@ -59,6 +59,7 @@ export class TransferWrapper extends Serializable{
         if (this.hasPacketManager){
             const payloadObj: Serializable = new (this.packetManager.getClsById(this.packet_id, true)!)();
             payloadObj.packetManager = payloadObj.requirePacketManager ? this.packetManager : undefined;
+            payloadObj.fromBytes(new ByteStreamReader(this.payload));
             payloadObjText = payloadObj.toJson();
         }
 
