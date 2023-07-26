@@ -76,8 +76,8 @@ export class TransferWrapper extends Serializable{
             packet_id: this.packet_id,
             payload_length: this.payload_length,
             payload: this.payload.toString(),
-            __payloadCls: payloadTypeCls,
-            __payloadObj: payloadObjText,
+            __payloadCls: this.flags.chunked_packet ? undefined : payloadTypeCls,
+            __payloadObj: this.flags.chunked_packet ? undefined : payloadObjText,
         };
         return obj;
     }

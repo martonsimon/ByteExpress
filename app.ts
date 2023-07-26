@@ -77,21 +77,14 @@ server.onEvent("event", ctx => {
 }, (ctx) => {
     console.log("[server] event request closed");
 });
-let eventCtx: iRequestContext | undefined;
-client.eventRequest("event", undefined, (ctx) => {console.log("got ctx"); eventCtx = ctx;}).subscribe({
-    next: ctx => {
-        console.log("[client]: event " + (ctx.res.payload as StringPacket).text);
-    },
-    error: err => {
-        console.log("Error");
-    },
-    complete: () => console.log("complete")
-});
-setTimeout(() => {
-    //server.disconnectClient(0);
-    //client.disconnect();
-}, 200);
-eventCtx?.req.close();
+
+
+let rawStr = "123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj";
+let packet = new StringPacket(rawStr);
+let packetBytes = packet.toBytes().readAll();
+console.log(packetBytes.length)
+let packet2 = new StringPacket();
+packet2.fromBytes(new ByteStreamReader(packetBytes));
 
 /*
 server.onStream("api/test", async stream => {
