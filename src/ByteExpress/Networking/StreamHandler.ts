@@ -370,6 +370,7 @@ class Stream implements iStream{
             packet.flags.close_connection = true;
             packet.flags.error_response = false;
             packet.streamId = this.sequence;
+            packet.setPayload(new NullPacket());
             this.connection.sendPacket(packet);
         }
 
