@@ -54,9 +54,9 @@ export class TransferWrapper extends Serializable{
         this.totalPacketLength = -1;
     }
     toJson(): object{
-        let payloadTypeCls: string | undefined = this.hasPacketManager ? this.packetManager.getClsById(this.packet_id, true)?.name : undefined;
+        let payloadTypeCls: string | undefined = this.hasPacketManager && !this.flags.chunked_packet ? this.packetManager.getClsById(this.packet_id, true)?.name : undefined;
         let payloadObjText: string | object = "<undefined>";
-        if (this.hasPacketManager){
+        if (this.hasPacketManager && !this.flags.chunked_packet){
             const payloadObj: Serializable = new (this.packetManager.getClsById(this.packet_id, true)!)();
             payloadObj.packetManager = payloadObj.requirePacketManager ? this.packetManager : undefined;
             payloadObj.fromBytes(new ByteStreamReader(this.payload));
@@ -70,14 +70,16 @@ export class TransferWrapper extends Serializable{
                 ack: this.flags.ack,
                 require_ack: this.flags.require_ack,
                 chunked_packet: this.flags.chunked_packet,
+                last_chunk: this.flags.last_chunk,
             },
             packet_sequence: this.packet_sequence,
             chunk_id: this.chunk_id,
             packet_id: this.packet_id,
             payload_length: this.payload_length,
             payload: this.payload.toString(),
-            __payloadCls: this.flags.chunked_packet ? undefined : payloadTypeCls,
-            __payloadObj: this.flags.chunked_packet ? undefined : payloadObjText,
+            __payloadNote: this.flags.chunked_packet ? "The payload is just a chunk, cannot obtain cls and obj information" : undefined,
+            __payloadCls: payloadTypeCls,
+            __payloadObj: payloadObjText,
         };
         return obj;
     }
@@ -104,7 +106,7 @@ export class TransferWrapper extends Serializable{
     }
     fromBytes(stream: ByteStreamReader): boolean{
         this.initDeserializer(stream);
-        let totalPacketSize = -1;
+        let totalPacketSize = 0;
         //Read the flag to get information about packet structure
         if (!this.isAvailable(1))
             return false;

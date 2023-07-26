@@ -22,7 +22,7 @@ export class Payload extends Serializable{
             __name: "Payload",
             packetId: this.packetId,
             payloadLength: this.payloadLength,
-            payload: this.payload.toString() + " asd",
+            payload: this.payload.toString(),
         };
         return obj;
     }
@@ -30,7 +30,7 @@ export class Payload extends Serializable{
         throw new Error("Not implemented");
     }
     toBytes(): ByteStreamReader{
-        this.initSerializer();
+        this.initSerializer(); 
 
         this.addNumber(this.packetId, 2);
         this.addNumber(this.payloadLength, 2);
@@ -44,7 +44,7 @@ export class Payload extends Serializable{
         this.packetId = this.getNumber(2);
         this.payloadLength = this.getNumber(2);
         this.payload = this.getBytes(this.payloadLength)!;
-
+ 
         return true;
     }
 

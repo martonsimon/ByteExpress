@@ -79,12 +79,22 @@ server.onEvent("event", ctx => {
 });
 
 
-let rawStr = "123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj123asdsdklfjasdklfjasldkfj";
-let packet = new StringPacket(rawStr);
-let packetBytes = packet.toBytes().readAll();
-console.log(packetBytes.length)
-let packet2 = new StringPacket();
-packet2.fromBytes(new ByteStreamReader(packetBytes));
+server.onRequest("example2", ctx => { 
+    console.log("Received example2 request");
+    let reqObj = JSON.parse((ctx.req.payload as StringPacket).text);
+    let response = `Received your message with a random number of ${reqObj.rnd} and message of: ${reqObj.msg}`;
+    console.log("resp made: ", response);
+    ctx.res.write(new StringPacket(response));
+});
+
+let rawStr = "123abc.őúűüÚŐí";
+let reqObj = {msg: rawStr, rnd: 245699};
+client.request(new StringPacket(JSON.stringify(reqObj)), true, "example2").then(ctx => {
+    let response = (ctx.res.payload as StringPacket).text;
+    console.log("response done: ", response); // logs "Response"
+}).catch(ctx => {
+  console.log("an error");
+});
 
 /*
 server.onStream("api/test", async stream => {

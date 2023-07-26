@@ -110,37 +110,37 @@ export class NetworkConnection{
         return this._sendPacket(packet, placeAtBeginning, flush, false);
     }
     private _sendPacket(packet: Serializable, placeAtBeginning: boolean = false, flush: boolean = false, ack: boolean): boolean{
-         this.logger.trace("_sendPacket, id: ", this.id, " placeAtBeginning: ", placeAtBeginning, " flush: ", flush, " ack: ", ack);
-         this.logger.trace("packet to send: ", packet.toJson());
+        this.logger.trace("_sendPacket, id: ", this.id, " placeAtBeginning: ", placeAtBeginning, " flush: ", flush, " ack: ", ack);
+        this.logger.trace("packet to send: ", packet.toJson());
 
-         let data = packet.toBytes();
-         let length = data.getLength(); 
-         let packetId = this.packetManager.getIdByInstance(packet);
-         this.logger.trace("packetId: ", packetId, " length: ", length);
-         if (!packetId){
+        let data = packet.toBytes();
+        let length = data.getLength();
+        let packetId = this.packetManager.getIdByInstance(packet);
+        this.logger.trace("packetId: ", packetId, " length: ", length);
+        if (!packetId){
             console.error("Invalid outbound packet. Please set an ID inside PacketManager.ts or add the class using the Networking instance's addPacket method");
             return false;
-         }
+        }
 
-         if (length > this.maxSinglePacketPayload){
+        if (length > this.maxSinglePacketPayload){
             //if packet is too long
             //then chop it into smaller pieces
             let sequence = this.nextSequence;
             this.incrementSequence();
             this.logger.trace("packet needs segmentation, sequence: ", sequence);
 
-            let fragments = Math.ceil(length / this.maxSinglePacketPayload);
-            for (let i = 0; i < fragments; i++){
+            let i = 0;
+            while (data.getRemainingAmount() > 0){
                 let allowedPayload = i == 0 ? this.maxChunkedPacketPayload : this.maxChunkedPacketPayloadContinuous;
-                let lastChunk = (i == fragments - 1);
-
+                let isLastChunk = (data.getRemainingAmount() <= allowedPayload);
                 let toRead = Math.min(allowedPayload, data.getRemainingAmount());
                 let fragmentData = data.read(toRead);
+
                 let wrapper = new TransferWrapper();
                 wrapper.packetManager = this.packetManager;
                 wrapper.flags.ack = ack;
                 wrapper.flags.chunked_packet = true;
-                wrapper.flags.last_chunk = lastChunk;
+                wrapper.flags.last_chunk = isLastChunk;
                 wrapper.packet_sequence = sequence;
                 wrapper.chunk_id = i;
                 wrapper.packet_id = packetId;
@@ -148,9 +148,10 @@ export class NetworkConnection{
                 wrapper.payload = fragmentData!;
 
                 this.queuePacket(wrapper, placeAtBeginning);
+                i++;
             }
-         }
-         else{
+        }
+        else{
             //else just wrap it
             let wrapper = new TransferWrapper();
             wrapper.packetManager = this.packetManager;
@@ -160,9 +161,9 @@ export class NetworkConnection{
             wrapper.payload = data.readAll()!;
 
             this.queuePacket(wrapper, placeAtBeginning);
-         }
-         this.flushOutboundQueue(flush);
-         return true;
+        }
+        this.flushOutboundQueue(flush);
+        return true;
     }
     /**
      * Queues a given transfer wrapper
@@ -492,6 +493,7 @@ class PacketBuffer{
             throw new Error(`Extracting packet failed. Packet with ID: ${this.packetId} does not exist`);
 
         let packet = new cls();
+        packet.packetManager = this.packetManager;
         packet.fromBytes(this.chunks.toStreamReader());
         return packet;
     }

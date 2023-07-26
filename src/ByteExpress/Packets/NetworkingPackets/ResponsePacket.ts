@@ -50,7 +50,7 @@ export class ResponsePacket extends Serializable{
                 payloadType: this.payloadType,
                 packetId: this.payload.packetId,
                 payloadLength: this.payload.payloadLength,
-                payload: this.payload.payload,
+                payload: this.payload.payload, 
             },
         };
         return obj;
@@ -76,7 +76,6 @@ export class ResponsePacket extends Serializable{
         this.request_id = this.getNumber(2);
         this.code = this.getNumber(2);
         this.payload = this.getPacket(Payload);
-
 
         return true;
     }
