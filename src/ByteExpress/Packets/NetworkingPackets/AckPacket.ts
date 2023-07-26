@@ -13,10 +13,12 @@ export class AckPacket extends Serializable{
     }
     toBytes(): ByteStreamReader{
         this.initSerializer();
+        this.addNumber(0, 1);
         return this.getSerialized();
     }
     fromBytes(stream: ByteStreamReader): boolean{
         this.initDeserializer(stream);
+        this.getNumber(1);
         return true;
     }
 }
