@@ -1,4 +1,6 @@
 import { Component } from '@angular/core';
+import { GatewayService } from './gateway.service';
+import { HttpClient } from '@angular/common/http';
 
 
 
@@ -9,6 +11,9 @@ import { Component } from '@angular/core';
 })
 export class AppComponent {
   title = 'angular';
+  gateway: GatewayService;
 
-
+  constructor(http: HttpClient, gateway: GatewayService) {
+    this.gateway = gateway;
+  }
 }

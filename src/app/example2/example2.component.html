@@ -5,21 +5,22 @@
     <div class="grid gap-1 mb-6">
       <mat-form-field class="example-form-field w-full">
         <mat-label>raw string payload</mat-label>
-        <input matInput type="text">
+        <input matInput type="text" [(ngModel)]="strPayload">
+        <mat-hint>Number of chars: {{strPayload.length}}</mat-hint>
       </mat-form-field>
       <mat-form-field class="example-form-field w-full">
         <mat-label>random number</mat-label>
-        <input matInput type="number" disabled value="0">
+        <input matInput type="number" disabled value="0" [(ngModel)]="rndNum">
       </mat-form-field>
       <div class="text-lg">
-        <p class="text-orange-400">sending...</p>
-        <p class="text-green-700">sent</p>
-        <p class="text-red-700">error</p>
-        <p>time: <span class="font-bold">12 ms</span></p>
+        <p *ngIf="inProcess" class="text-orange-400">sending...</p>
+        <p *ngIf="done" class="text-green-700">sent</p>
+        <p *ngIf="error" class="text-red-700">error</p>
+        <p>time: <span class="font-bold">{{time}} ms</span></p>
       </div>
       <div>
-        <button mat-flat-button color="primary" class="w-full md:w-fit px-4">Send</button>
-        <button mat-flat-button color="basic" class="w-full md:w-fit px-4">Reset</button>
+        <button (click)="send()" mat-flat-button color="primary" class="w-full md:w-fit px-4">Send</button>
+        <button (click)="reset()" mat-flat-button color="basic" class="w-full md:w-fit px-4">Reset</button>
       </div>
     </div>
   </div>
@@ -27,7 +28,7 @@
     <h3 class="text-sm mb-1 font-semibold">Response</h3>
     <mat-form-field class="example-form-field w-full">
       <mat-label>response</mat-label>
-      <textarea value="<no response>" disabled matInput
+      <textarea [(ngModel)]="response" disabled matInput
         cdkTextareaAutosize
         #autosize="cdkTextareaAutosize"
         cdkAutosizeMinRows="5"

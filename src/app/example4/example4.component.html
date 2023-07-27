@@ -7,21 +7,22 @@
       <div>
         <mat-form-field class="w-full">
           <mat-label>Start from (payload)</mat-label>
-          <input matInput type="number" value="0">
+          <input matInput type="number" [(ngModel)]="startFrom">
         </mat-form-field>
         <mat-form-field class="w-full">
           <mat-label>Intervals (ms)</mat-label>
-          <input matInput type="number" value="1000">
+          <input matInput type="number" [(ngModel)]="intervals">
+          <mat-hint>Note: JS cannot work with way too small intervals accurately</mat-hint>
         </mat-form-field>
       </div>
       <div class="text-lg">
-        <p class="text-green-700">subscribed</p>
-        <p class="text-red-700">error</p>
-        <p>stopped</p>
+        <p *ngIf="subscribed" class="text-green-700">subscribed</p>
+        <p *ngIf="error" class="text-red-700">error</p>
+        <p *ngIf="!subscribed">stopped</p>
       </div>
       <div>
-        <button mat-flat-button color="primary" class="w-full md:w-fit px-4 mb-1 md:mr-1">Subscribe</button>
-        <button mat-flat-button color="warn" class="w-full md:w-fit px-4 mb-1 md:mr-1">Cancel</button>
+        <button (click)="subscribe()" mat-flat-button color="primary" class="w-full md:w-fit px-4 mb-1 md:mr-1">Subscribe</button>
+        <button (click)="cancel()" mat-flat-button color="warn" class="w-full md:w-fit px-4 mb-1 md:mr-1">Cancel</button>
       </div>
     </div>
   </div>

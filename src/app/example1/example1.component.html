@@ -1,11 +1,11 @@
 <h2 class="text-lg font-semibold mb-2">Ping (example #1)</h2>
 <div class="text-lg">
-  <p>nth ping: <span class="font-bold">0</span></p>
-  <p class="text-orange-400">in process...</p>
-  <p class="text-green-700">done</p>
-  <p class="text-red-700">error</p>
-  <p>pong: <span class="font-bold">12 ms</span></p>
+  <p>nth ping: <span class="font-bold">{{nthPing}}</span></p>
+  <p *ngIf="inProcess" class="text-orange-400">in process...</p>
+  <p *ngIf="done" class="text-green-700">done</p>
+  <p *ngIf="error" class="text-red-700">error</p>
+  <p *ngIf="done || inProcess" >pong: <span class="font-bold">{{time}} ms</span></p>
 </div>
 <div>
-  <button mat-flat-button color="primary" class="w-full md:w-fit px-4">Ping</button>
+  <button (click)="ping()" [disabled]="inProcess" mat-flat-button color="primary" class="w-full md:w-fit px-4">Ping</button>
 </div>
