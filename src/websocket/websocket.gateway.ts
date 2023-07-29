@@ -1,6 +1,9 @@
 import { OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { ByteExpressServer, NullPacket, RequestContext, CallbackContext, StringPacket, NumberPacket } from 'byte-express';
 import { Server, Socket } from 'socket.io';
+import { CustomDecorator, Inject } from '@nestjs/common/decorators';
+import { AppService } from 'src/app.service';
+import { SetMetadata } from '@nestjs/common/decorators';
 
 @WebSocketGateway({
   cors: true,
@@ -81,3 +84,41 @@ export class WebsocketGateway implements OnGatewayInit, OnGatewayConnection, OnG
     socket.emit('byteexpress', data);
   }
 }
+
+export const ByteExpress = (path: string): MethodDecorator => {
+  console.log("ByteExpress decorator eval");
+  return SetMetadata("byteexpress", path);
+
+  
+
+
+  const injectService = Inject(AppService);
+
+  return (target: object, key: string | symbol, descriptor: PropertyDescriptor) => {
+    console.log("ByteExpress decorator called");
+    console.log(path);
+    console.log(key.toString());
+
+    
+
+    const originalMethod = descriptor.value; //save a reference to the original method
+
+    //redefine descriptor value within own function block
+    descriptor.value = async function(...args: any[]) {
+      console.log("overriden function");
+      try {
+        const result = await originalMethod.apply(this, args);
+        const appService: AppService = this.service;
+        console.log("appService: " + appService.getHello());
+        return result;
+      } catch (error) {
+          const appService: AppService = this.service;
+          console.log("appService: " + appService.getHello());
+    
+          // rethrow error, so it can bubble up
+          throw error;
+      }
+    };
+    return descriptor;
+  };
+};
