@@ -14,15 +14,22 @@ console.log("Application started!");
 
 export function clientOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //server.inboundData(0, data);
-    setImmediate(() => {
+    /*setImmediate(() => {
         server.inboundData(0, data);
-    });
+    });*/
+    //emulate some delay
+    setTimeout(() => {
+        server.inboundData(0, data);
+    }, 20);
 }
 export function serverOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //client.inboundData(0, data);
+    /*setImmediate(() => {
+        client.inboundData(0, data);
+    });*/
     setImmediate(() => {
         client.inboundData(0, data);
-    });
+    }, 20);
 }
 
 let client = new ByteExpressClient(clientOutbound, {debugPrefix: "client", logLevel: 4});
@@ -87,14 +94,66 @@ server.onRequest("example2", ctx => {
     ctx.res.write(new StringPacket(response));
 });
 
-let rawStr = "123abc.őúűüÚŐí";
+
+
+
+
+
+
+server.onStream("stream", async stream => {
+    const bytesAmount = await stream.readNumber();
+    const bytesPerAck = await stream.readNumber();
+    console.log(`Received stream request with ${bytesAmount} bytes and ${bytesPerAck} bytes per ack`);
+    let transferred = 0;
+
+    //Receive the data
+    for (let i = 0; i < Math.ceil(bytesAmount / bytesPerAck); i++) {
+      const data = await stream.readBytes();
+      transferred += data.length;
+      stream.sendAck();
+    }
+
+    console.log(`Received ${transferred} bytes`);
+});
+
+const bytesAmount = 128;
+const bytesPerAck = 32;
+let transferredBytes = 0;
+client.stream("stream", async stream => {
+    stream.sendNumber(bytesAmount, 4);
+    stream.sendNumber(bytesPerAck, 4);
+
+    //Send the data
+    for (let i = 0; i < Math.ceil(bytesAmount / bytesPerAck); i++) {
+      const sendAmount = Math.min(bytesPerAck, bytesAmount - i * bytesPerAck);
+      const data = generateRandomData(sendAmount);
+      stream.sendBytes(data);
+      await stream.readAck();
+
+      transferredBytes += sendAmount;
+    }
+  }, (stream, err) => {
+    console.log("Stream error");
+  }, stream => {
+    console.log("Stream completed");
+}); 
+function generateRandomData(N: number): Uint8Array {
+    const buffer = new Uint8Array(N);
+    for (let i = 0; i < N; i++) {
+      buffer[i] = Math.floor(Math.random() * 256); // Generates a random number between 0 and 255 (inclusive)
+    }
+    return buffer;
+}
+
+
+/*let rawStr = "123abc.őúűüÚŐí";
 let reqObj = {msg: rawStr, rnd: 245699};
 client.request(new StringPacket(JSON.stringify(reqObj)), true, "example2").then(ctx => {
     let response = (ctx.res.payload as StringPacket).text;
     console.log("response done: ", response); // logs "Response"
 }).catch(ctx => {
   console.log("an error");
-});
+});*/
 
 /*
 server.onStream("api/test", async stream => {

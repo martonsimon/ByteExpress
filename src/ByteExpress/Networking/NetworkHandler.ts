@@ -108,7 +108,7 @@ export class NetworkHandler{
      * @param id ID for the connection
      * @param data Data received
      */
-    public inboundData(id: number, data: Uint8Array | string){
+    public inboundData(id: number | string, data: Uint8Array | string){
         let bytes: Uint8Array;
         if (typeof data === 'string')
             bytes = this.encoder.encode(data);
