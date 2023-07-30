@@ -135,13 +135,16 @@ export class RequestHandler{
         return this.requestHandlers.addCallbackElement(handler);
     }
     private inboundRequest(packet: RequestPacket){
-        let sequence = packet.request_id;
-        this.abortRequest(sequence);
-
         //handlers
         let key = packet.flags.endpoint_is_string ? packet.endpoint_str : packet.endpoint_id;
         let handler = this.requestHandlers.find(key); //lookup the local handlers first
         handler = handler ? handler : this.globalRequestHandlers.find(key); //then the global ones
+        if (!handler) //do not handle without a handler
+            return;
+
+        //sequence
+        let sequence = packet.request_id;
+        this.abortRequest(sequence);
 
         //Create request and context objects
         let req = new Request(
@@ -163,10 +166,8 @@ export class RequestHandler{
         this.inboundRequests.push(ctx);
 
         //handle
-        if (handler){
-            let cb = handler.getCallback().cb;
-            ctx.res.callCb(cb, ctx);
-        }
+        let cb = handler.getCallback().cb;
+        ctx.res.callCb(cb, ctx);
     }
 
 
