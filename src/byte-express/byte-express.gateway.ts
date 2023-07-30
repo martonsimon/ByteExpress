@@ -14,6 +14,7 @@ export class ByteExpressGateway implements OnGatewayInit, OnGatewayConnection, O
   sockets: Array<Socket>;
 
   constructor() {
+    this.sockets = new Array<Socket>();
     this.networkServer = new ByteExpressServer(this.outboundCallback.bind(this), {
       logLevel: 4,
       connectionPacketsPerAck: 32,
@@ -25,20 +26,24 @@ export class ByteExpressGateway implements OnGatewayInit, OnGatewayConnection, O
   afterInit(server: Server){ this.server = server; }
   handleConnection(client: any, ...args: any[]) {
     console.log("Client connected with id: " + client.id);
+    this.sockets.push(client);
+    this.networkServer.connectClient(client.id as string);
   }
   handleDisconnect(client: any) {
     console.log("Client disconnected with id: " + client.id);
+    this.sockets.splice(this.sockets.indexOf(client), 1);
+    this.networkServer.disconnectClient(client.id as string);
   }
 
   //ByteExpress related functionalities
   @SubscribeMessage('byteexpress')
   handleInboundData(client: any, payload: any): void{
-    let id = client.id;
+    let id: string = client.id;
     this.networkServer.inboundData(id, payload);
   }
 
   outboundCallback(id: number | string, data: Uint8Array, ctx?: CallbackContext){
-    let socket = this.sockets.find(x => x.id === id);
+    let socket = this.sockets.find(x => x.id === id as string);
     socket.emit('byteexpress', data);
   }
 }

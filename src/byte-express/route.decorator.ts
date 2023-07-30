@@ -28,8 +28,8 @@ export const ByteExpressRouteMeta = (endpoint: string | (new() => Serializable),
 
 //Signatures of the functions inside the controllers
 export type RequestSignature = (payload: Serializable, ctx?: iRequestContext) => Promise<Serializable>;
-export type StreamSignature = () => Promise<StreamReturnSignature>;
-export type EventSignature = () => Promise<EventReturnSignature>;
+export type StreamSignature = () => StreamReturnSignature;
+export type EventSignature = () => EventReturnSignature;
 
 export type RequestReturnType = Promise<Serializable> | Serializable;
 export type StreamReturnSignature = {
@@ -70,6 +70,6 @@ export const ByteExpressRequest = (endpoint: string | (new() => Serializable), t
 export const ByteExpressStream = (endpoint: string | (new() => Serializable), transport: Transport = Transport.WEBSOCKET): StreamDescriptor => {
     return ByteExpressRouteMeta(endpoint, STREAM, transport) as StreamDescriptor;
 };
-export const ByteExpressEvent = (endpoint: string | (new() => Serializable), transport: Transport = Transport.WEBSOCKET): EventDescriptor => {
+export const ByteExpressEvent = (endpoint: string, transport: Transport = Transport.WEBSOCKET): EventDescriptor => {
     return ByteExpressRouteMeta(endpoint, EVENT, transport) as EventDescriptor;
 };
