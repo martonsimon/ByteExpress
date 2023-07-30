@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { GatewayService } from '../gateway.service';
-import { ByteExpressClient, NullPacket } from 'byte-express';
+import { ByteExpressClient, NullPacket, StringPacket, iRequestContext, iStream } from 'byte-express';
+import { async } from 'rxjs';
 
 @Component({
   selector: 'app-example1',
