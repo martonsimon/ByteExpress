@@ -2,7 +2,7 @@ import { Controller, Get, Header } from '@nestjs/common';
 import { AppService } from './app.service';
 import { ByteExpress } from './websocket/websocket.gateway';
 import { ByteExpressServer, Serializable, iStream, StringPacket, iRequestContext } from 'byte-express';
-import { ByteExpressEvent, ByteExpressRequest, ByteExpressStream, EVENT, EventReturnSignature, EventSignature, REQUEST, RequestReturnType, STREAM, testT } from './byte-express/route.decorator';
+import { ByteExpressEvent, ByteExpressRequest, ByteExpressStream, EVENT, EventReturnSignature, EventSignature, REQUEST, RequestReturnType, STREAM, StreamReturnSignature } from './byte-express/route.decorator';
 import { Observable, of } from 'rxjs';
 import { tap, map, filter, delay } from 'rxjs/operators'
 
@@ -26,26 +26,22 @@ export class AppController {
     return new StringPacket("test");
   }
 
-  @testT()
-  testtt(): number{
-    return 1;
-  }
-
-  /*@ByteExpressEvent("test3")
-  handleEvent() {
+  @ByteExpressEvent("test3")
+  async handleEvent(): Promise<EventReturnSignature>{
     return {
-      onEvent: async (payload: StringPacket, ctx: iRequestContext) => {
-        return of(new StringPacket("test2"), new StringPacket("test3"), new StringPacket("test3")).pipe(delay(1000)) as Observable<Serializable>;
+      onEvent: async (payload: StringPacket, ctx: iRequestContext): Promise<Observable<Serializable>> => {
+        let obs = of(new StringPacket("test2"), new StringPacket("test3"), new StringPacket("test3")).pipe(delay(1000)) as Observable<Serializable>;
+        return obs;
       },
       onError: async (ctx: iRequestContext) => {},
     };
-  }*/
+  }
 
-  /*@ByteExpressStream("test4")
-  async handleStream(){
+  @ByteExpressStream("test4")
+  async handleStream(): Promise<StreamReturnSignature>{
     return {
       onStream: async (stream: iStream) => {
-
+        
       },
       onError: async (stream: iStream, err: Error) => {
 
@@ -54,5 +50,5 @@ export class AppController {
 
       }
     };
-  }*/
+  }
 }

@@ -29,13 +29,13 @@ export const ByteExpressRouteMeta = (endpoint: string | (new() => Serializable),
 //Signatures of the functions inside the controllers
 export type RequestSignature = (payload: Serializable, ctx?: iRequestContext) => Promise<Serializable>;
 export type StreamSignature = () => Promise<StreamReturnSignature>;
-export type EventSignature = () => (EventReturnSignature | Observable<Serializable>);
+export type EventSignature = () => Promise<EventReturnSignature>;
 
 export type RequestReturnType = Promise<Serializable> | Serializable;
 export type StreamReturnSignature = {
-    onStream: (stream: iStream) => void | Promise<void>,
-    onError: (stream: iStream, err: Error) => void | Promise<void>,
-    final: (stream: iStream) => void | Promise<void>,
+    onStream: (stream: iStream) => Promise<void>,
+    onError: (stream: iStream, err: Error) => Promise<void>,
+    final: (stream: iStream) => Promise<void>,
 };
 export type EventReturnSignature = {
     onEvent: (payload: Serializable, ctx?: iRequestContext) => Promise<Observable<Serializable>>,
@@ -60,9 +60,10 @@ export type StreamDescriptor = (
 export type EventDescriptor = (
     target: object,
     key: string,
-    descriptor: TypedPropertyDescriptor<() => EventReturnSignature | string>
-) => TypedPropertyDescriptor<() => EventReturnSignature | string>;
+    descriptor: TypedPropertyDescriptor<EventSignature>
+) => TypedPropertyDescriptor<EventSignature>;
 
+//Decorators for different typoes of routes
 export const ByteExpressRequest = (endpoint: string | (new() => Serializable), transport: Transport = Transport.WEBSOCKET): RequestDescriptor => {
     return ByteExpressRouteMeta(endpoint, REQUEST, transport) as RequestDescriptor;
 };
@@ -72,21 +73,3 @@ export const ByteExpressStream = (endpoint: string | (new() => Serializable), tr
 export const ByteExpressEvent = (endpoint: string | (new() => Serializable), transport: Transport = Transport.WEBSOCKET): EventDescriptor => {
     return ByteExpressRouteMeta(endpoint, EVENT, transport) as EventDescriptor;
 };
-
-
-type testTType<T> = (...args: any[]) => T;
-export const testT = () => {
-    return (
-        target: object,
-        key: string,
-        descriptor: TypedPropertyDescriptor<testTType2<number | string>>
-    ) => {
-        return descriptor;
-    };
-}
-
-type MyType = {
-    // Define the properties and methods of MyType here
-  };
-  
-type testTType2<T> = T extends number ? (...args: any[]) => number : (...args: any[]) => string;
