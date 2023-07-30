@@ -14,29 +14,22 @@ console.log("Application started!");
 
 export function clientOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //server.inboundData(0, data);
-    /*setImmediate(() => {
-        server.inboundData(0, data);
-    });*/
-    //emulate some delay
-    setTimeout(() => {
-        server.inboundData(0, data);
-    }, 20);
+    setImmediate(() => {
+        server.inboundData("asd", data);
+    });
 }
 export function serverOutbound(id: number | string, data: Uint8Array, ctx?: CallbackContext){
     //client.inboundData(0, data);
-    /*setImmediate(() => {
-        client.inboundData(0, data);
-    });*/
     setImmediate(() => {
         client.inboundData(0, data);
-    }, 20);
+    });
 }
 
 let client = new ByteExpressClient(clientOutbound, {debugPrefix: "client", logLevel: 4});
 let server = new ByteExpressServer(serverOutbound, {debugPrefix: "server", logLevel: 4});
 
 client.connect();
-server.connectClient(0); 
+server.connectClient("asd"); 
 
 client.packetManager.addPacket(SamplePacket, 0);
 

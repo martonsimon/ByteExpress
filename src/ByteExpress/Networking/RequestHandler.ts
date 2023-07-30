@@ -249,6 +249,8 @@ export class RequestHandler{
             this.logger.trace("aborting inbound request...");
             req.res.abort();
         }
+        this.outboundRequests = [];
+        this.inboundRequests = [];
         this.requestHandlers.clear();
     }
 }
@@ -610,6 +612,8 @@ export class Response implements iResponse{
      * and marks the request context as compelted
      */
     public abort(){
+        if (this.aborted)
+            return;
         this.stopTimeout();
         if (!this.multipleResponse)
             this.promiseRejectFn!(this.context);
